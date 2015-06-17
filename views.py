@@ -15,15 +15,15 @@ from django.core.urlresolvers import reverse
 import pseudopwd as pwd
 
 
-
+#from .forms import UsernameForm
 
 
 # Create your views here.
 def userhistory(request):
     """
     this may include the following
-    1. A simple form to enter a username. (eventually may be replaced by something more robust)
-    2. A call to pwd using the user name
+    1. A simple form to enter a username
+    2. A call to pwd using the username .. if user doesn't exist, return appropriate message to the web page
     3. A call to the slurm database to acquire all entires for a user in the jobs table
     4.
     """

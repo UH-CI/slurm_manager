@@ -6,8 +6,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <!-- datatable styling -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
+
   </head>
   <body>
+{% comment %}
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
 	<div class="navbar-header">
@@ -28,7 +32,7 @@
 	</div><!--/.nav-collapse -->
       </div>
     </nav>
-    
+{% endcomment %}    
     <div class="container">
       {% block body %}
       {% endblock %}
@@ -38,5 +42,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <!-- datatable js import.  For now, pull from cdn -->
+    <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+
   </body>
 </html>
