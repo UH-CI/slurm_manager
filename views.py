@@ -27,5 +27,5 @@ def userhistory(request):
     3. A call to the slurm database to acquire all entires for a user in the jobs table
     4.
     """
-    return render(request, "index.html", dict(msg = "Hello World!") )
+    return render(request, "userhistory.html", dict(msg = "Hello World!") )
     
