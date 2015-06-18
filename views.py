@@ -45,7 +45,7 @@ def get_username(request):
                 job.time_end = datetime.datetime.fromtimestamp(job.time_end)
                 job.time_start =  datetime.datetime.fromtimestamp(job.time_start)
                 job.time_eligible = job.time_end - job.time_start
-            return render(request, 'userhistory.html', {'form': form, "uid" : uid, 'allJobs' : allJobs, 'submitted' : submitted})
+            return render(request, 'userhistory.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'submitted' : submitted})
     else:
         form = UsernameForm()
     return render(request, 'userhistory.html', {'form': form, 'submitted' : submitted})
