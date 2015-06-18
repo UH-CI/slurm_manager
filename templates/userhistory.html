@@ -3,5 +3,46 @@
 {% block sub_heading %} User History {% endblock %}
 
 {% block body %}
-{{msg}}
+<script type="text/javascript" class="init">
+  $(document).ready(function() {
+  $('#userinfo').DataTable();
+  } );
+</script>
+<form action="." method="post">
+  {% csrf_token %}
+  {{ form.as_table }}  
+  <input type="submit" value="Submit" />
+</form><a href = "./">Back</a>
+
+<h3>User Information</h3>
+{% if submitted %}
+<b>UserID:</b> {{ uid }}
+<table id = "userinfo" class = "display" cellspacing = "0" width = "100%">
+  <thead>
+    <tr>
+      <th>JobID</th>
+      <th>Time Started</th>
+      <th>Time Ended</th>
+      <th>Total Time</th>
+      <th>CPUs Allocated</th>
+      <th>Memory Requested</th>
+    </tr>
+  </thead>
+  <tfoot></tfoot>
+  <tbody>
+    {% for job in allJobs %}
+    <tr>
+      <td>{{ job.id_job }} </td>
+      <td>{{ job.time_start }}</td>
+      <td>{{ job.time_end }}</td>
+      <td>{{ job.time_eligible}}</td>
+      <td>{{ job.cpus_alloc }} </td>
+      <td>{{ job.mem_req }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<i>This area will be populated upon submitting a username.</i>
+{% endif %}
 {% endblock %}
