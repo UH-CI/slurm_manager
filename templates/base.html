@@ -20,13 +20,15 @@
       </div>
     </div>
     <div class="row">     
-      <div class="large-9 columns" role="content">
+      <div class="large-12 columns" role="content">
 	{% block body %}
 	{% endblock %}
       </div>
+{% comment %}
       <aside class="large-3 columns">
 	{% block sidebar %}{% endblock %}
       </aside>
+{% endcomment %}
     </div>
     <footer class="row">
       <div class="large-12 columns">
@@ -58,6 +60,11 @@
 {#    <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/jquery.js"></script>#}
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/modernizr.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/placeholder.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+    {% block initscripts %}
+    {% endblock %}
   </body>
 </html>
 
