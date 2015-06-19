@@ -1,49 +1,65 @@
 {% extends "base.html" %}
 
 {% block sub_heading %} User History {% endblock %}
-
 {% block body %}
-<script type="text/javascript" class="init">
-  $(document).ready(function() {
-  $('#userinfo').DataTable();
-  } );
-</script>
+<div>
 <form action="." method="post">
   {% csrf_token %}
-  {{ form.as_table }}  
-  <input type="submit" value="Submit" />
-</form><a href = "./">Back</a>
-
-<h3>User Information</h3>
+  {{ form.as_table }}
+  <input class="button right" type="submit" value="Submit">
+</form></div><hr>
+<div>
+{% if exists %}
+<font size = "5">User Information</font><br>
 {% if submitted %}
-<b>Username:</b> {{ uname }} <br>
-<b>UserID:</b> {{ uid }}
+<span class="success alert label"><b>Username:</b> {{ uname }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span><br><br>
 <table id = "userinfo" class = "display" cellspacing = "0" width = "100%">
   <thead>
     <tr>
       <th>JobID</th>
+      <th>Job Name</th>
+      <th>Job State</th>
       <th>Time Started</th>
       <th>Time Ended</th>
-      <th>Total Time</th>
+      <th title="hh:mm:ss">Total Time</th>
+      <th title="hh:mm:ss">Requested Time</th>
       <th>CPUs Allocated</th>
-      <th>Memory Requested</th>
+      <th>CPU Time</th>
+      <th>Memory Requested (MB)</th>
     </tr>
   </thead>
   <tfoot></tfoot>
   <tbody>
     {% for job in allJobs %}
     <tr>
-      <td>{{ job.id_job }} </td>
+      <td>{{ job.id_job }}</td>
+      <td>{{ job.job_name }}</td>
+      <td>{{ job.state }}</td>
       <td>{{ job.time_start }}</td>
       <td>{{ job.time_end }}</td>
-      <td>{{ job.time_eligible}}</td>
+      <td>{{ job.runtime }}</td>
+      <td>{{ job.timelimit }}</td>
       <td>{{ job.cpus_alloc }} </td>
+      <td>{{ job.cputime }}</td>
       <td>{{ job.mem_req }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 {% else %}
-<i>This area will be populated upon submitting a username.</i>
+<br><i>This area will be populated upon submitting a username.</i>
 {% endif %}
+
+{% else %}
+<b><font color = "red">You have entered an invalid username.</b></font><a href = "./"> Back</a>
+{% endif %}
+</div>
+
+<script type="text/javascript" class="init">
+  $(document).ready(function() {
+  $('#userinfo').DataTable( {
+    "order": [[ 0, "desc" ]]
+  });
+} );
+</script>
 {% endblock %}

@@ -30,22 +30,41 @@ def userhistory(request):
     """
     return render(request, "userhistory.html", dict(msg = "Hello World!") )
     
-#View for getting username
+### User History View
+def change_times(allJobs):
+    states = ['Pending', 'Running', 'Suspended', 'Complete', 'Cancelled', 'Failed', 'Timeout', 'Node Failed', 'Preempted', 'Boot Failure']
+    for job in allJobs:
+        job.timelimit = datetime.timedelta(minutes = job.timelimit)
+        job.state = states[job.state]
+        if job.time_end < job.time_start:
+            job.time_end = 0
+            job.runtime = 0
+            job.time_start = datetime.datetime.fromtimestamp(job.time_start)
+            job.cputime = 0
+        else:
+            job.time_start = datetime.datetime.fromtimestamp(job.time_start)
+            job.time_end = datetime.datetime.fromtimestamp(job.time_end)
+            job.runtime = job.time_end - job.time_start
+            job.cputime = job.cputime * job.runtime
+    return allJobs
+
 def get_username(request):
     submitted = False
+    exists = True
     if request.method == 'POST':
         form = UsernameForm(request.POST)
         if form.is_valid():
             submitted = True
             username = form.cleaned_data['username']
             form = UsernameForm()
-            uid = pwd.getpwnam(username)[2]
-            allJobs = UohJobTable.objects.filter(id_user = uid)
-            for job in allJobs:
-                job.time_end = datetime.datetime.fromtimestamp(job.time_end)
-                job.time_start =  datetime.datetime.fromtimestamp(job.time_start)
-                job.time_eligible = job.time_end - job.time_start
-            return render(request, 'userhistory.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'submitted' : submitted})
+            try:
+                uid = pwd.getpwnam(username)[2]
+            except KeyError:
+                exists = False
+            if exists:
+                allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc'))
+                allJobs = change_times(allJobs)                                                
+                return render(request, 'userhistory.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'submitted' : submitted, 'exists' : exists})
     else:
         form = UsernameForm()
-    return render(request, 'userhistory.html', {'form': form, 'submitted' : submitted})
+    return render(request, 'userhistory.html', {'form': form, 'submitted' : submitted, 'exists' : exists})
