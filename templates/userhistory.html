@@ -1,61 +1,76 @@
 {% extends "base.html" %}
 
-{% block sub_heading %} User History {% endblock %}
+{% block sub_heading %} User History{% if uname %}: {{uname}}{% endif %} {% endblock %}
 {% block body %}
-<div>
-<form action="." method="post">
-  {% csrf_token %}
-  {{ form.as_table }}
-  <input class="button right" type="submit" value="Submit">
-</form></div><hr>
-<div>
-{% if exists %}
-<font size = "5">User Information</font><br>
-{% if submitted %}
-<span class="success alert label"><b>Username:</b> {{ uname }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span><br><br>
-<table id = "userinfo" class = "display" cellspacing = "0" width = "100%">
-  <thead>
-    <tr>
-      <th>JobID</th>
-      <th>Job Name</th>
-      <th>Job State</th>
-      <th>Time Started</th>
-      <th>Time Ended</th>
-      <th title="hh:mm:ss">Total Time</th>
-      <th title="hh:mm:ss">Requested Time</th>
-      <th>CPUs Allocated</th>
-      <th>CPU Time</th>
-      <th>Memory Requested (MB)</th>
-    </tr>
-  </thead>
-  <tfoot></tfoot>
-  <tbody>
-    {% for job in allJobs %}
-    <tr>
-      <td>{{ job.id_job }}</td>
-      <td>{{ job.job_name }}</td>
-      <td>{{ job.state }}</td>
-      <td>{{ job.time_start }}</td>
-      <td>{{ job.time_end }}</td>
-      <td>{{ job.runtime }}</td>
-      <td>{{ job.timelimit }}</td>
-      <td>{{ job.cpus_alloc }} </td>
-      <td>{{ job.cputime }}</td>
-      <td>{{ job.mem_req }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<br><i>This area will be populated upon submitting a username.</i>
-{% endif %}
 
-{% else %}
-<b><font color = "red">You have entered an invalid username.</b></font><a href = "./"> Back</a>
-{% endif %}
+<div class = "row">
+  <form action="{% url 'user_history' %}" method="post">
+    {% csrf_token %}
+    <div class = "row large-6 columns error">{{ form.non_field_errors }}</div>
+    <div class = "row large-6 columns error">{{ form.username.errors }}</div>
+    <div class = "row">
+      <div class = "large-6 columns">
+	<div class = "row collapse prefix-radius">
+	  <div class = "small-2 columns"><span class = "prefix">{{ form.username.label }}</span></div>
+	  <div class = "small-8 columns">{{ form.username }}</div>
+	  <div class = "small-2 columns"><input class="button postfix" type="submit" value="Submit"></div>
+	</div>
+      </div>
+    </div>
+  </form>
 </div>
 
-<script type="text/javascript" class="init">
+<div class = "row">
+  {% if exists %}
+   <h3>User Information</h3><br />
+   {% if submitted %}
+    <span class="success alert label"><b>Username:</b> {{ uname }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span>
+    <br /><br />
+    <table id = "userinfo" class = "display" cellspacing = "0" width = "100%">
+     <thead>
+      <tr>
+	<th>JobID</th>
+	<th>Job Name</th>
+	<th>Job State</th>
+	<th>Time Started</th>
+	<th>Time Ended</th>
+	<th title="hh:mm:ss">Total Time</th>
+	<th title="hh:mm:ss">Requested Time</th>
+	<th>CPUs Allocated</th>
+	<th>CPU Time</th>
+	<th>Memory Requested (MB)</th>
+      </tr>
+     </thead>
+     <tfoot></tfoot>
+     <tbody>
+      {% for job in allJobs %}
+      <tr>
+	<td>{{ job.id_job }}</td>
+	<td>{{ job.job_name }}</td>
+	<td>{{ job.state }}</td>
+	<td>{{ job.time_start }}</td>
+	<td>{{ job.time_end }}</td>
+	<td>{{ job.runtime }}</td>
+	<td>{{ job.timelimit }}</td>
+	<td>{{ job.cpus_alloc }} </td>
+	<td>{{ job.cputime }}</td>
+	<td>{{ job.mem_req }}</td>
+      </tr>
+      {% endfor %}
+     </tbody>
+   </table>
+  {% else %}
+    <br><i>This area will be populated upon submitting a username.</i>
+  {% endif %}
+ {% else %}
+  <b><font color = "red">You have entered an invalid username.</b></font><a href = "./"> Back</a>
+ {% endif %}
+</div>
+{% endblock %}
+
+
+{% block initscripts %}
+<script type="text/javascript">
   $(document).ready(function() {
   $('#userinfo').DataTable( {
     "order": [[ 0, "desc" ]]

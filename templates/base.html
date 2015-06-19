@@ -1,15 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>Slurm Manager -- {% block sub_heading %}{% endblock %}</title>
-    <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
-
+    <meta charset="UTF-8">
+    <title>Slurm Manager - {% block sub_heading %}{% endblock %}</title>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/foundation.min.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/normalize.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/plug-ins/1.10.7/integration/foundation/dataTables.foundation.css">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>  
-    <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-
+    <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/1.10.7/integration/foundation/dataTables.foundation.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
   </head>
   <body>
     <div class="row">
@@ -19,7 +16,7 @@
       </div>
     </div>
     <div class="row">     
-      <div class="large-12 columns" role="content">
+      <div class="large-12 columns">
 	{% block body %}
 	{% endblock %}
       </div>
@@ -31,12 +28,14 @@
     </div>
     <footer class="row">
       <div class="large-12 columns">
-	<hr/>
 	<div class="row">
 	  {% block footer %}{% endblock %}
 	</div>
       </div>
     </footer>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>  
+    <script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation/foundation.abide.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation/foundation.accordion.min.js"></script>

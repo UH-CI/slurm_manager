@@ -1,12 +1,9 @@
 from django.conf import settings
-from django.db import connections
-from django.db.models import Q, Max, Count
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from .forms import UsernameForm
-from slurm_manager.models import UohJobTable
+from .models import UohJobTable
 import datetime
 
 ## DLS ##
@@ -16,22 +13,9 @@ import datetime
 import pseudopwd as pwd
 
 
-#from .forms import UsernameForm
-
-
-# Create your views here.
-def userhistory(request):
-    """
-    this may include the following
-    1. A simple form to enter a username
-    2. A call to pwd using the username .. if user doesn't exist, return appropriate message to the web page
-    3. A call to the slurm database to acquire all entires for a user in the jobs table
-    4.
-    """
-    return render(request, "userhistory.html", dict(msg = "Hello World!") )
-    
 ### User History View
 def change_times(allJobs):
+    ### DLS -- states list can be brough outside of the functions so that it isn't loaded/created each time.
     states = ['Pending', 'Running', 'Suspended', 'Complete', 'Cancelled', 'Failed', 'Timeout', 'Node Failed', 'Preempted', 'Boot Failure']
     for job in allJobs:
         job.timelimit = datetime.timedelta(minutes = job.timelimit)
@@ -62,8 +46,10 @@ def get_username(request):
             except KeyError:
                 exists = False
             if exists:
-                allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc'))
+                ## DLS -- use of limit returned data
+                allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc')
                 allJobs = change_times(allJobs)                                                
+                ## DLS -- multi return statements vs single return statement in a function
                 return render(request, 'userhistory.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'submitted' : submitted, 'exists' : exists})
     else:
         form = UsernameForm()
