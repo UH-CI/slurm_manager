@@ -45,15 +45,19 @@
      <tbody>
       {% for job in allJobs %}
       <tr>
-	<td>{{ job.id_job }}</td>
+	<td>{{ job.job_db_inx }}</td>
 	<td>{{ job.job_name }}</td>
 	<td>{{ job.state }}</td>
-	<td>{{ job.time_start }}</td>
-	<td>{{ job.time_end }}</td>
+	<td>{{ job.time_start|date:"Y/m/d, H:i:s" }}</td>
+	<td>{{ job.time_end|date:"Y/m/d, H:i:s" }}</td>
 	<td>{{ job.runtime }}</td>
 	<td>{{ job.timelimit }}</td>
 	<td>{{ job.cpus_alloc }} </td>
+	{% if job.cputime.days == 0 %}
+	<td>0 days, {{ job.cputime }}</td>
+	{% else %}
 	<td>{{ job.cputime }}</td>
+	{% endif %}
 	<td>{{ job.mem_req }}</td>
       </tr>
       {% endfor %}
@@ -63,7 +67,7 @@
     <br><i>This area will be populated upon submitting a username.</i>
   {% endif %}
  {% else %}
-  <b><font color = "red">You have entered an invalid username.</b></font><a href = "./"> Back</a>
+  <b><font color = "red">You have entered an invalid username.</b></font><a href = "./history"> Back</a>
  {% endif %}
 </div>
 {% endblock %}
@@ -73,8 +77,12 @@
 <script type="text/javascript">
   $(document).ready(function() {
   $('#userinfo').DataTable( {
-    "order": [[ 0, "desc" ]]
+   "columnDefs": [
+        { "type": "natural", targets: [5, 6, 8] }
+    ],
+    "order": [[ 3, "desc" ]]
   });
 } );
+
 </script>
 {% endblock %}

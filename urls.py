@@ -2,5 +2,6 @@ from . import views
 from django.conf.urls import url
 
 urlpatterns = [
-    url(r'^$', views.get_username, name = "user_history" ),
+    url(r'^history$', views.user_history, name = 'user_history' ),
+    url(r'^$', views.dashboard, name = 'user_dashboard'),
 ]
