@@ -116,9 +116,73 @@ def dashboard(request):
 
 #get the lifetime jobs...
 
-#def get_json(allJobs, data):
- #   for job in allJobs
-    #find when they first did a job
-    #start counting by months...
+def get_json_jobs(allJobs):
+    json_dict = []
+    current_month = datetime.datetime.now().month
+    current_year = datetime.datetime.now().year
+    if (current_month - 6) <= 0:
+        target_month = current_month - 6 + 12
+        target_year = current_year - 1
+    else:
+        target_month = current_month - 6
+        target_year = current_year
+    counter = 0
+    for job in reversed(allJobs):
+        if(current_month != job.time_start.month):
+            json_dict.append({'month' : current_month, 'jobs' : counter})
+            if(current_month - 1 == 0):
+                current_month = 12
+                current_year -= 1
+            else:
+                current_month -= 1
+            counter = 0
+            if(current_month <= target_month and current_year == target_year):
+                break
+        else:
+            counter += 1
     #return the dictionary as a json
-  #  json.dump(
+    json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
+    return json_jobs
+
+def get_json_time(allJobs):
+    json_dict = []
+    current_month = datetime.datetime.now().month
+    current_year = datetime.datetime.now().year
+    if (current_month - 6) <= 0:
+        target_month = current_month - 6 + 12
+        target_year = current_year - 1
+    else:
+        target_month = current_month - 6
+        target_year = current_year
+    counter = datetime.timedelta(0)
+    total_hours = 0
+    for job in reversed(allJobs):
+        if(current_month != job.time_start.month):
+            total_hours = counter.total_seconds() / 3600.0
+            json_dict.append({'month' : current_month, 'time' : total_hours})
+            if(current_month - 1 == 0):
+                current_month = 12
+                current_year -= 1
+            else:
+                current_month -= 1
+            counter = datetime.timedelta(0)
+            if(current_month <= target_month and current_year == target_year):
+                break
+        else:
+            counter += job.cputime
+    #return the dictionary as a json
+    json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
+    return json_jobs
+    
+
+def print_jobs(request):
+    allJobs = get_jobs(1515)
+    allJobs = change_times(allJobs)
+    json_jobs = get_json_jobs(allJobs)
+    return HttpResponse(json_jobs, content_type='application/json')
+
+def print_time(request):
+    allJobs = get_jobs(1515)
+    allJobs = change_times(allJobs)
+    json_time = get_json_time(allJobs)
+    return HttpResponse(json_time, content_type='application/json')
