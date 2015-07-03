@@ -129,7 +129,7 @@ def get_json_jobs(allJobs):
     counter = 0
     for job in reversed(allJobs):
         if(current_month != job.time_start.month):
-            json_dict.append({'month' : current_month, 'jobs' : counter})
+            json_dict.append({'month' : current_month, 'y' : counter}) #Using y as the key so function works in JS
             if(current_month - 1 == 0):
                 current_month = 12
                 current_year -= 1
@@ -159,7 +159,7 @@ def get_json_time(allJobs):
     for job in reversed(allJobs):
         if(current_month != job.time_start.month):
             total_hours = counter.total_seconds() / 3600.0
-            json_dict.append({'month' : current_month, 'time' : total_hours})
+            json_dict.append({'month' : current_month, 'y' : total_hours})
             if(current_month - 1 == 0):
                 current_month = 12
                 current_year -= 1
@@ -175,14 +175,14 @@ def get_json_time(allJobs):
     return json_jobs
     
 
-def print_jobs(request):
-    allJobs = get_jobs(1515)
+def print_jobs(request, uid):
+    allJobs = get_jobs(int(float(uid)))
     allJobs = change_times(allJobs)
     json_jobs = get_json_jobs(allJobs)
     return HttpResponse(json_jobs, content_type='application/json')
 
-def print_time(request):
-    allJobs = get_jobs(1515)
+def print_time(request, uid):
+    allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
     json_time = get_json_time(allJobs)
     return HttpResponse(json_time, content_type='application/json')
