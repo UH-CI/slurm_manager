@@ -41,7 +41,7 @@ def change_times(allJobs):
 
 # Given a User ID, will output the corresponding UohJobTable
 def get_jobs(uid):
-    allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc')
+    allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc').order_by('time_start')
     return allJobs
 
 
@@ -120,27 +120,26 @@ def get_json_jobs(allJobs):
     json_dict = []
     current_month = datetime.datetime.now().month
     current_year = datetime.datetime.now().year
-    if (current_month - 6) <= 0:
-        target_month = current_month - 6 + 12
-        target_year = current_year - 1
-    else:
-        target_month = current_month - 6
-        target_year = current_year
-    counter = 0
-    for job in reversed(allJobs):
-        if(current_month != job.time_start.month):
-            json_dict.append({'month' : current_month, 'y' : counter}) #Using y as the key so function works in JS
-            if(current_month - 1 == 0):
-                current_month = 12
-                current_year -= 1
-            else:
-                current_month -= 1
-            counter = 0
-            if(current_month <= target_month and current_year == target_year):
-                break
+    target_year = current_year - 1
+    target_month = current_month
+    while (current_month != target_month or current_year != target_year):
+        tempMon = {'year': current_year, 'month': current_month, 'y': 0, 'completed': 0, 'failed': 0, 'cancelled': 0}
+        json_dict.append(tempMon)
+        if(current_month - 1 == 0):
+            current_month = 12
+            current_year -= 1
         else:
-            counter += 1
-    #return the dictionary as a json
+            current_month -= 1
+    for job in reversed(allJobs):
+        for month in json_dict:
+            if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
+                month['y'] += 1
+                if(job.state == 'Cancelled'):
+                    month['cancelled'] += 1
+                if(job.state == 'Failed'):
+                    month['failed'] += 1
+                if(job.state == 'Complete'):
+                    month['completed'] += 1
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
@@ -148,28 +147,22 @@ def get_json_time(allJobs):
     json_dict = []
     current_month = datetime.datetime.now().month
     current_year = datetime.datetime.now().year
-    if (current_month - 6) <= 0:
-        target_month = current_month - 6 + 12
-        target_year = current_year - 1
-    else:
-        target_month = current_month - 6
-        target_year = current_year
-    counter = datetime.timedelta(0)
-    total_hours = 0
-    for job in reversed(allJobs):
-        if(current_month != job.time_start.month):
-            total_hours = counter.total_seconds() / 3600.0
-            json_dict.append({'month' : current_month, 'y' : total_hours})
-            if(current_month - 1 == 0):
-                current_month = 12
-                current_year -= 1
-            else:
-                current_month -= 1
-            counter = datetime.timedelta(0)
-            if(current_month <= target_month and current_year == target_year):
-                break
+    target_year = current_year - 1
+    target_month = current_month
+    while (current_month != target_month or current_year != target_year):
+        tempMon = {'year': current_year, 'month': current_month, 'y': 0.0}
+        json_dict.append(tempMon)
+        if(current_month - 1 == 0):
+            current_month = 12
+            current_year -= 1
         else:
-            counter += job.cputime
+            current_month -= 1
+    for job in reversed(allJobs):
+        for month in json_dict:
+            if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
+                month['y'] += job.cputime.total_seconds()
+    for month in json_dict:
+        month['y'] /= 3600.0 #hour conversion
     #return the dictionary as a json
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs

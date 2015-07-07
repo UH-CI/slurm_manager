@@ -41,7 +41,9 @@
   <br> More stuff here?
   </div>
   <div class="small-6 columns">
+  <h3> Jobs by Month </h3>
   <p id="job_chart"></p>
+  <h3> CPU Time by Month </h3>
   <p id="time_chart"></p>
   </div>
   </div>
@@ -49,19 +51,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
-  var numMonths = 5; // should be set to  in template
+  var numMonths = 11; // should be set to  in template
   // core variables for bar chart
   var width = 500;
   var height = 400;
   var padding = width / 20; //space from the edge of CSV, prevent y-axis ticks getting cut off
-  var barWidth = width / 8.5;
+  var barWidth = width / 18;
 
   // calling functions to get the earliest month
   var current = new Date(), // current date 
     currentMonth = current.getMonth(),
-    currentYear = current.getYear();
+    currentYear = current.getFullYear();
 
-  var dMonths = new Date(2015, currentMonth, 1); // delta months
+  var dMonths = new Date(currentYear, currentMonth, 1); // delta months
     dMonths = new Date(dMonths.setMonth(current.getMonth() - numMonths));
   
   current.setMonth(currentMonth + 1);
@@ -83,35 +85,35 @@
         .domain([dMonths, current])
         .range([padding * 2, width - padding]);
 
-      var xScale = d3.scale.linear() //json gives integers, not date object
-        .domain([dMonths.getMonth(), current.getMonth()])
-        .range([padding * 2.1, width - padding * 1.2 - barWidth]);
+      var xScale = d3.time.scale() //json gives integers, not date object
+        .domain([dMonths, current])
+        .range([padding * 2.25, width - padding]);
 
       var xAxis = d3.svg.axis() //months
         .scale(xTime)
         .orient("bottom")
         .ticks(d3.time.months)
         .tickSize(16, 0)
-        .tickFormat(d3.time.format("%B"));
+        .tickFormat(d3.time.format("%b"));
 
       var yAxis = d3.svg.axis()
             .scale(yScale)
             .orient("left");
         
-      var tip = d3.tip() // tooltip
-        .attr("class", "d3-tip")
-        .offset([-10, 0]);
-        // will need to adjust below if more graph types arise
-        if(div_element == "#job_chart") {
+        var tip = d3.tip() // tooltip
+          .attr("class", "d3-tip")
+          .offset([-10, 0]);
+          // will need to adjust below if more graph types arise
+          if(div_element == "#job_chart") {
           tip.html(function(d) {
-            return "<strong> Total Jobs this Month: </strong>" + Math.round(d.y * 10) / 10.0;
-          });
+              return "<strong>Total Jobs: </strong>" + d.y + "<br>&#8195; Completed: " + d.completed + "<br>&#8195; Failed: " + d.failed + "<br>&#8195; Cancelled: " + d.cancelled;
+            });
         }
-        else {
-          tip.html(function(d) {
-            return "<strong> Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0;
-          });
-        }
+          else {
+            tip.html(function(d) {
+              return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0;
+            });
+          }
 
       canvas.selectAll("rect")
           .data(data)
@@ -120,13 +122,18 @@
               .attr("height", 0)
               .attr("width", barWidth)
               .attr("y", height - padding)
-              .attr("x", function (d, i) { return xScale(5 - i + 1); })
+              .attr("x", function(d, i) {
+                dateToUse = new Date(currentYear, currentMonth, 1);
+                dateToUse.setMonth(current.getMonth() - i);
+                return xScale(dateToUse);
+              })
+              //.attr("x", function (d, i) { return xScale(numMonths - i + 1); })
               .attr("class", "bar")
               .attr("fill", "#4DB870")
               .on('mouseover', tip.show)
                   .on('mouseout', tip.hide)
                 .transition()
-                  .delay(function(d, i) { return (6 - i) * 75; })
+                  .delay(function(d, i) { return (numMonths + 1 - i) * 75; })
                   .duration(250)
                   .attr("y", function (d) { return yScale(d.y); })
                   .attr("height", function (d) { return height - padding - yScale(d.y); });
@@ -147,8 +154,8 @@
           .call(tip);
     });
   };
-  drawGraph("./test/{{ uid }}", "#time_chart");
-  drawGraph("./test/{{ uid }}", "#job_chart");
+  drawGraph("./getjobs/{{ uid }}", "#job_chart");
+  drawGraph("./gettime/{{ uid }}", "#time_chart");
 </script>
 
 {% else %}
