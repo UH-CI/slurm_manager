@@ -116,12 +116,15 @@ def dashboard(request):
 
 #get the lifetime jobs...
 
-def get_json_jobs(allJobs):
+def get_json_jobs(allJobs, numMonths):
     json_dict = []
-    current_month = datetime.datetime.now().month
-    current_year = datetime.datetime.now().year
-    target_year = current_year - 1
-    target_month = current_month
+    now = datetime.date.today()
+    current_month = now.month
+    current_year = now.year
+    target_date = now - datetime.timedelta(numMonths * 365 / 12)
+    target_year = target_date.year
+    target_month = target_date.month
+    #create the empty list of dictionaries
     while (current_month != target_month or current_year != target_year):
         tempMon = {'year': current_year, 'month': current_month, 'y': 0, 'completed': 0, 'failed': 0, 'cancelled': 0}
         json_dict.append(tempMon)
@@ -143,12 +146,15 @@ def get_json_jobs(allJobs):
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
-def get_json_time(allJobs):
+def get_json_time(allJobs, numMonths):
     json_dict = []
-    current_month = datetime.datetime.now().month
-    current_year = datetime.datetime.now().year
-    target_year = current_year - 1
-    target_month = current_month
+    now = datetime.date.today()
+    current_month = now.month
+    current_year = now.year
+    target_date = now - datetime.timedelta(numMonths * 365 / 12)
+    target_year = target_date.year
+    target_month = target_date.month
+    #create the empty list of dictionaries
     while (current_month != target_month or current_year != target_year):
         tempMon = {'year': current_year, 'month': current_month, 'y': 0.0}
         json_dict.append(tempMon)
@@ -171,11 +177,11 @@ def get_json_time(allJobs):
 def print_jobs(request, uid):
     allJobs = get_jobs(int(float(uid)))
     allJobs = change_times(allJobs)
-    json_jobs = get_json_jobs(allJobs)
+    json_jobs = get_json_jobs(allJobs, 12)
     return HttpResponse(json_jobs, content_type='application/json')
 
 def print_time(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
-    json_time = get_json_time(allJobs)
+    json_time = get_json_time(allJobs, 12)
     return HttpResponse(json_time, content_type='application/json')
