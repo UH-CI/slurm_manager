@@ -10,6 +10,7 @@ import json
 ## DLS ##
 # when moving from testing to live, we need to switch between 
 # the pwd module and out pseudo module
+
 #import pwd
 import pseudopwd as pwd
 
@@ -75,6 +76,8 @@ def user_history(request):
 ## Base functions: tcpuhours, tjobs
 this_week = datetime.datetime.now().isocalendar()[1]
 this_month = datetime.datetime.now().month
+
+# Returns a list of total jobs performed this week, month, and since the dawn of time
 def tjobs(allJobs):
     total_jobs = [0, 0, 0] # [week, month, lifetime]
     for job in allJobs:
@@ -85,6 +88,7 @@ def tjobs(allJobs):
         total_jobs[2]+= 1
     return total_jobs
 
+# Returns a list of total CPU time consumed this week, month, and since the dawn of time
 def tcpuhours(allJobs):
     total_cpuhours = [datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0)] # [week, month, lifetime]
     for job in allJobs:
@@ -95,6 +99,7 @@ def tcpuhours(allJobs):
         total_cpuhours[2] += job.cputime
     return total_cpuhours
 
+# View for displaynig the dashboard
 def dashboard(request):
     submitted = False
     exists = True
@@ -114,8 +119,10 @@ def dashboard(request):
             return render(request, 'dashboard.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'total_jobs' : total_jobs, 'total_cpuhours' : total_cpuhours, 'submitted' : submitted, 'exists' : exists})
     return render(request, 'dashboard.html', {'form': form, 'submitted' : submitted, 'exists' : exists})
 
-#get the lifetime jobs...
+### Graph Functions (aggregates jobs and CPU times)
+## Base functions: get_json_jobs, get_json_time
 
+# Returns a JSON of jobs completed in the last numMonths, by month and year
 def get_json_jobs(allJobs, numMonths):
     json_dict = []
     now = datetime.date.today()
@@ -133,6 +140,7 @@ def get_json_jobs(allJobs, numMonths):
             current_year -= 1
         else:
             current_month -= 1
+    #go through all jobs and match them to dictionaries, increment counters
     for job in reversed(allJobs):
         for month in json_dict:
             if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
@@ -146,6 +154,7 @@ def get_json_jobs(allJobs, numMonths):
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
+# Returns a JSON of CPU time consumed in the last numMonths, by month and year
 def get_json_time(allJobs, numMonths):
     json_dict = []
     now = datetime.date.today()
@@ -163,23 +172,24 @@ def get_json_time(allJobs, numMonths):
             current_year -= 1
         else:
             current_month -= 1
+    #go through jobs and match them to dictionaries, += cputime
     for job in reversed(allJobs):
         for month in json_dict:
             if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
                 month['y'] += job.cputime.total_seconds()
     for month in json_dict:
         month['y'] /= 3600.0 #hour conversion
-    #return the dictionary as a json
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
-    
 
+# Returns the JSON of get_json_jobs
 def print_jobs(request, uid):
-    allJobs = get_jobs(int(float(uid)))
+    allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
     json_jobs = get_json_jobs(allJobs, 12)
     return HttpResponse(json_jobs, content_type='application/json')
 
+# Returns the JSON of get_json_time
 def print_time(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
