@@ -79,24 +79,37 @@ this_month = datetime.datetime.now().month
 
 # Returns a list of total jobs performed this week, month, and since the dawn of time
 def tjobs(allJobs):
-    total_jobs = [0, 0, 0] # [week, month, lifetime]
+    total_jobs = [0, 0, 0, 0, 0, 0, 0, 0] # [week, month, lifetime, total completed, total failed, total cancelled, running, pending]
     for job in allJobs:
         if(job.time_start.isocalendar()[1] == this_week):
             total_jobs[0] += 1
         if(job.time_start.month == this_month):
             total_jobs[1] += 1
+        if(job.state == 'Complete'):
+            total_jobs[3] += 1
+        if(job.state == 'Failed'):
+            total_jobs[4] += 1
+        if(job.state == 'Cancelled'):
+            total_jobs[5] += 1
+        if(job.state == 'Running'):
+            total_jobs[6] += 1
+        if(job.state == 'Pending'):
+            total_jobs[7] += 1
         total_jobs[2]+= 1
     return total_jobs
 
 # Returns a list of total CPU time consumed this week, month, and since the dawn of time
 def tcpuhours(allJobs):
-    total_cpuhours = [datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0)] # [week, month, lifetime]
+    total_cpuhours = [datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), str(0)] # [week, month, lifetime, lifetime requested, ratio]
     for job in allJobs:
         if(job.time_start.isocalendar()[1] == this_week):
             total_cpuhours[0] += job.cputime 
         if(job.time_start.month == this_month):
             total_cpuhours[1] += job.cputime
         total_cpuhours[2] += job.cputime
+        total_cpuhours[3] += job.timelimit
+    ratio = total_cpuhours[2].total_seconds() / total_cpuhours[3].total_seconds() * 100.0
+    total_cpuhours[4] = str('%.2f' %ratio)
     return total_cpuhours
 
 # View for displaynig the dashboard
@@ -142,15 +155,16 @@ def get_json_jobs(allJobs, numMonths):
             current_month -= 1
     #go through all jobs and match them to dictionaries, increment counters
     for job in reversed(allJobs):
-        for month in json_dict:
-            if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
-                month['y'] += 1
-                if(job.state == 'Cancelled'):
-                    month['cancelled'] += 1
-                if(job.state == 'Failed'):
-                    month['failed'] += 1
-                if(job.state == 'Complete'):
-                    month['completed'] += 1
+        if(job.time_end != 0):
+            for month in json_dict:
+                if month['month'] == job.time_end.month and month['year'] == job.time_end.year:
+                    month['y'] += 1
+                    if(job.state == 'Cancelled'):
+                        month['cancelled'] += 1
+                    if(job.state == 'Failed'):
+                        month['failed'] += 1
+                    if(job.state == 'Complete'):
+                        month['completed'] += 1
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
@@ -174,9 +188,10 @@ def get_json_time(allJobs, numMonths):
             current_month -= 1
     #go through jobs and match them to dictionaries, += cputime
     for job in reversed(allJobs):
-        for month in json_dict:
-            if month['month'] == job.time_start.month and month['year'] == job.time_start.year:
-                month['y'] += job.cputime.total_seconds()
+        if(job.time_end != 0):
+            for month in json_dict:
+                if month['month'] == job.time_end.month and month['year'] == job.time_end.year:
+                    month['y'] += job.cputime.total_seconds()
     for month in json_dict:
         month['y'] /= 3600.0 #hour conversion
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))

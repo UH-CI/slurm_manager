@@ -4,23 +4,28 @@
 {% block body %}
 
 <div class = "row">
-  <form action="{% url 'user_history' %}" method="post">
-    {% csrf_token %}
-    <div class = "row large-6 columns error">{{ form.non_field_errors }}</div>
-    <div class = "row large-6 columns error">{{ form.username.errors }}</div>
-    <div class = "row">
-      <div class = "large-6 columns">
-	<div class = "row collapse prefix-radius">
-	  <div class = "small-2 columns"><span class = "prefix">{{ form.username.label }}</span></div>
-	  <div class = "small-8 columns">{{ form.username }}</div>
-	  <div class = "small-2 columns"><input class="button postfix" type="submit" value="Submit"></div>
-	</div>
+   <div class = "large-12 columns">
+    <form action="{% url 'user_history' %}" method="post">
+      {% csrf_token %}
+      <div class = "row large-6 columns error">{{ form.non_field_errors }}</div>
+      <div class = "row large-6 columns error">{{ form.username.errors }}</div>
+      <div class = "row">
+        <div class = "large-6 columns">
+          <div class = "row collapse prefix-radius">
+            <div class = "small-2 columns"><span class = "prefix">{{ form.username.label }}</span></div>
+            <div class = "small-9 columns">{{ form.username }}</div>
+            <div class = "small-1 columns">
+              <div class="row collapse postfix-round"><input class="button postfix" type="submit" value="Go!"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 
 <div class = "row">
+  <div class = "large-12 columns">
   {% if exists %}
    <h3>User Information</h3><br />
    {% if submitted %}
@@ -69,6 +74,7 @@
  {% else %}
   <b><font color = "red">You have entered an invalid username.</b></font><a href = "./history"> Back</a>
  {% endif %}
+</div>
 </div>
 {% endblock %}
 

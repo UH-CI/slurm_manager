@@ -59,10 +59,25 @@
     }
     </style>
   </head>
+  <nav class="top-bar" data-topbar role="navigation">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href = "./">HPC Web Portal</a></h1>
+      </li>
+      <li class="toggle-topbar icon"><a href="#"><span>Menu</span></a></li>
+    </ul>
+    <section class="top-bar-section">
+      <ul class="left">
+        <li class="active"><a href="./">Dashboard</a></li>
+        <li><a href="./history">Job History</a></li>
+      </ul>
+    </section>
+  </nav>
+
   <body>
     <div class="row">
       <div class="large-12 columns">
-        <h1>User History {% block userid %}{% endblock %}</h1>
+        <h1>HPC Web Portal {% block userid %}{% endblock %}</h1>
         <hr/>
       </div>
     </div>
