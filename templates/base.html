@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/normalize.min.css">
     <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/1.10.7/integration/foundation/dataTables.foundation.css">
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/responsive/1.0.6/css/dataTables.responsive.css">
     <style>
     /* need to put in own document */
     .axis path,
@@ -57,30 +58,39 @@
         top: 100%;
         left: 0;
     }
+
+    table {
+      table-layout: fixed;
+    }
+
+    body { 
+      background-image: url('http://www5.pbrc.hawaii.edu/logos/UH_Seal3435.jpg');
+      background-size: 200px;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: 95% 95%; 
+    }
+
     </style>
   </head>
-  <nav class="top-bar" data-topbar role="navigation">
-    <ul class="title-area">
-      <li class="name">
-        <h1><a href = "./">HPC Web Portal</a></h1>
-      </li>
-      <li class="toggle-topbar icon"><a href="#"><span>Menu</span></a></li>
-    </ul>
-    <section class="top-bar-section">
-      <ul class="left">
-        <li class="active"><a href="./">Dashboard</a></li>
-        <li><a href="./history">Job History</a></li>
+  <div class="contain-to-grid sticky">
+    <nav class="top-bar" data-topbar role="navigation" data-options="sticky_on: large">
+      <ul class="title-area">
+        <li class="name">
+          <h1><a href = "./">HPC Web Portal</a></h1>
+        </li>
+        <li class="toggle-topbar menu-icon"><a href="#"><span></span></a></li>
       </ul>
-    </section>
-  </nav>
+      <section class="top-bar-section">
+        <ul class="left">
+          <li class="active"><a href="./">Dashboard</a></li>
+          <li><a href="./history">Job History</a></li>
+        </ul>
+      </section>
+    </nav>
+  </div>
 
   <body>
-    <div class="row">
-      <div class="large-12 columns">
-        <h1>HPC Web Portal {% block userid %}{% endblock %}</h1>
-        <hr/>
-      </div>
-    </div>
     <div class="row">     
       <div class="large-12 columns">
 	{% block body %}
@@ -127,7 +137,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/placeholder.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
     <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-
+    <script src="//cdn.datatables.net/responsive/1.0.6/js/dataTables.responsive.js"></script>
     <script>
       $(document).foundation();
     </script>

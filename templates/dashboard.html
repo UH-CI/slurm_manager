@@ -3,6 +3,12 @@
 {% block sub_heading %} User Dashboard{% if uname %}: {{uname}}{% endif %} {% endblock %}
 
 {% block body %}
+<div class="row">
+  <div class="large-12 columns">
+    <h1>User Dashboard</h1>
+    <hr/>
+  </div>
+</div>
 <div class = "row">
    <div class = "large-12 columns">
     <form action="{% url 'user_dashboard' %}" method="post">
