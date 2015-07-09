@@ -77,14 +77,14 @@
     <nav class="top-bar" data-topbar role="navigation" data-options="sticky_on: large">
       <ul class="title-area">
         <li class="name">
-          <h1><a href = "./">HPC Web Portal</a></h1>
+          <h1><a href = "{% url 'user_dashboard' %}">HPC Web Portal</a></h1>
         </li>
         <li class="toggle-topbar menu-icon"><a href="#"><span></span></a></li>
       </ul>
       <section class="top-bar-section">
         <ul class="left">
-          <li class="active"><a href="./">Dashboard</a></li>
-          <li><a href="./history">Job History</a></li>
+          <li class="active"><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+          <li><a href="{%url 'user_history' %}">Job History</a></li>
         </ul>
       </section>
     </nav>
