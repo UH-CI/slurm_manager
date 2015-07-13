@@ -46,7 +46,7 @@ CAS_LOGOUT_COMPLETELY = True
 CAS_VERSION = '2'
 ```
 
-8. Need to grab tokenapi git clone https://github.com/jpulgarin/django-tokenapi
+8. Need to grab tokenapi git clone https://github.com/UH-CI/django-tokenapi
 9. copy/move the tokenapi folder into the HPC_Portal folder
 10. add the following to the settings.py
   * tokenapi to INSTALLED_APPS
