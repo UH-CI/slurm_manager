@@ -1,4 +1,4 @@
-frAeom django.conf import settings
+from django.conf import settings
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
@@ -6,6 +6,7 @@ from .forms import UsernameForm
 from .models import UohJobTable
 import datetime
 import json
+from django.contrib.auth.decorators import login_required
 
 ## DLS ##
 # when moving from testing to live, we need to switch between 
@@ -50,6 +51,7 @@ def get_username(form):
          return username
 
 # The view for returning job history
+#@login_required
 def user_history(request):
     submitted = False
     exists = True
@@ -65,7 +67,6 @@ def user_history(request):
             ## DLS -- use of limit returned data
             allJobs = get_jobs(uid)
             allJobs = change_times(allJobs)                                                
-            ## DLS -- multi return statements vs single return statement in a function
             return render(request, 'userhistory.html', {'form': form, 'uname' : username, 'uid' : uid, 'allJobs' : allJobs, 'submitted' : submitted, 'exists' : exists})
     return render(request, 'userhistory.html', {'form': form, 'submitted' : submitted, 'exists' : exists})
 
@@ -112,6 +113,7 @@ def tcpuhours(allJobs):
     return total_cpuhours
 
 # View for displaynig the dashboard
+#@login_required
 def dashboard(request):
     submitted = False
     exists = True
@@ -196,14 +198,18 @@ def get_json_time(allJobs, numMonths):
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
+
 # Returns the JSON of get_json_jobs
+#@login_required
 def print_jobs(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
     json_jobs = get_json_jobs(allJobs, 12)
     return HttpResponse(json_jobs, content_type='application/json')
 
+
 # Returns the JSON of get_json_time
+#@login_required
 def print_time(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)

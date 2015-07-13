@@ -97,6 +97,7 @@
       </ul>
       <section class="top-bar-section">
         <ul class="left">
+<<<<<<< HEAD
           {% if request.path == dashboard %}
           <li class="active"><a href="{{ dashboard }}">Dashboard</a></li>
           {% else %}
@@ -107,6 +108,10 @@
           {% else %}
           <li><a href="{%url 'user_history' %}">Job History</a></li>
           {% endif %}
+=======
+          <li class="active"><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+          <li><a href="{%url 'user_history' %}">Job History</a></li>
+>>>>>>> 960f73ca0b779025d8c46882605796f052f242c7
         </ul>
       </section>
     </nav>
