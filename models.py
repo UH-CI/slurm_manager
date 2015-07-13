@@ -649,7 +649,7 @@ class UohJobTable(models.Model):
     track_steps = models.IntegerField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'uoh_job_table'
         unique_together = (('id_job', 'id_assoc', 'time_submit'),)
         app_label = 'slurm'

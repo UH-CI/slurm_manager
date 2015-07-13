@@ -35,15 +35,12 @@ def change_times(allJobs):
             job.time_start = datetime.datetime.fromtimestamp(job.time_start)
             job.time_end = datetime.datetime.fromtimestamp(job.time_end)
             job.runtime = job.time_end - job.time_start
-            if(job.time_start.year == 1970):
-                job.cputime = datetime.timedelta(0)
-            else:
-                job.cputime = job.cputime * job.runtime
+            job.cputime = job.cputime * job.runtime
     return allJobs
 
 # Given a User ID, will output the corresponding UohJobTable
 def get_jobs(uid):
-    allJobs = UohJobTable.objects.filter(id_user = uid).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc').order_by('time_start')
+    allJobs = UohJobTable.objects.filter(id_user = uid).filter(time_start__gte = 1420070400).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc').order_by('time_start')
     return allJobs
 
 
@@ -100,6 +97,8 @@ def tjobs(allJobs):
     return total_jobs
 
 # Returns a list of total CPU time consumed this week, month, and since the dawn of time
+# and a ratio of cpuhours used vs. cpuhours requested
+
 def tcpuhours(allJobs):
     total_cpuhours = [datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), str(0)] # [week, month, lifetime, lifetime requested, ratio]
     for job in allJobs:
@@ -108,7 +107,7 @@ def tcpuhours(allJobs):
         if(job.time_start.month == this_month):
             total_cpuhours[1] += job.cputime
         total_cpuhours[2] += job.cputime
-        total_cpuhours[3] += job.timelimit
+        total_cpuhours[3] += job.timelimit * job.cpus_alloc
     ratio = total_cpuhours[2].total_seconds() / total_cpuhours[3].total_seconds() * 100.0
     total_cpuhours[4] = str('%.2f' %ratio)
     return total_cpuhours
