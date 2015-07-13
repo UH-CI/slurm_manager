@@ -35,7 +35,8 @@
    {% if submitted %}
     <span class="success alert label"><b>Username:</b> {{ uname }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span>
     <br /><br />
-    <table id = "userinfo" class = "display" cellspacing = "0" width = "100%">
+    <div align="center" style="display: block;" id="loadCircle"><i class="fa fa-cog fa-spin fa-2x"></i><i class="fa fa-cog fa-spin fa-4x"></i><i class="fa fa-cog fa-spin fa-2x"></i><br>We are processing your request!<br>This will take up to 15 seconds, depending on how many jobs you have.</div>
+    <table id="historyTable" style="display: none;" class = "display" cellspacing = "0" width = "100%">
      <thead>
       <tr>
       	<th>JobID</th>
@@ -46,7 +47,7 @@
       	<th title="hh:mm:ss">Total Time</th>
       	<th title="hh:mm:ss">Requested Time</th>
       	<th>CPUs Allocated</th>
-      	<th>CPU Time</th>
+      	<th>Core Time<span data-tooltip aria-haspopup="true" class="has-tip" title="Core time is the total amount of CPUs used multiplied by the runtime."><i class="fa fa-info-circle" style="vertical-align: sub; font-size: 11px;"></i></th>
       	<th>Memory Requested (MB)</th>
       </tr>
      </thead>
@@ -59,8 +60,16 @@
       	<td>{{ job.state }}</td>
       	<td>{{ job.time_start|date:"Y/m/d, H:i:s" }}</td>
       	<td>{{ job.time_end|date:"Y/m/d, H:i:s" }}</td>
-      	<td>{{ job.runtime }}</td>
-      	<td>{{ job.timelimit }}</td>
+      	{% if job.runtime.days == 0 %}
+        <td>0 days, {{ job.runtime }}</td>
+        {% else %}
+        <td>{{ job.runtime }}</td>
+        {% endif %}
+        {% if job.timelimit.days == 0 %}
+        <td>0 days, {{ job.timelimit }}</td>
+        {% else %}
+        <td>{{ job.timelimit }}</td>
+        {% endif %}
       	<td>{{ job.cpus_alloc }} </td>
       	{% if job.cputime.days == 0 %}
       	<td>0 days, {{ job.cputime }}</td>
@@ -86,14 +95,15 @@
 {% block initscripts %}
 <script type="text/javascript">
   $(document).ready(function() {
-  $('#userinfo').DataTable( {
+  $('#historyTable').DataTable( {
     responsive: true,
    "columnDefs": [
-        { "type": "natural", targets: [5, 6, 8] }
+        { type: "natural", targets: [5, 6, 8] }
     ],
    "order": [[ 3, "desc" ]]
   });
-} );
-
+  } );
+  document.getElementById("loadCircle").style.display = "none";
+  document.getElementById("historyTable").style.display = "block";
 </script>
 {% endblock %}

@@ -23,7 +23,7 @@ class AcctCoordTable(models.Model):
         managed = False
         db_table = 'acct_coord_table'
         unique_together = (('acct', 'user'),)
-
+        app_label = 'slurm'
 
 class AcctTable(models.Model):
     creation_time = models.IntegerField()
@@ -36,7 +36,7 @@ class AcctTable(models.Model):
     class Meta:
         managed = False
         db_table = 'acct_table'
-
+        app_label = 'slurm'
 
 class ClusResTable(models.Model):
     creation_time = models.IntegerField()
@@ -50,7 +50,7 @@ class ClusResTable(models.Model):
         managed = False
         db_table = 'clus_res_table'
         unique_together = (('res_id', 'cluster'), ('res_id', 'cluster'),)
-
+        app_label = 'slurm'
 
 class ClusterTable(models.Model):
     creation_time = models.IntegerField()
@@ -69,7 +69,7 @@ class ClusterTable(models.Model):
     class Meta:
         managed = False
         db_table = 'cluster_table'
-
+        app_label = 'slurm'
 
 class ProdAssocTable(models.Model):
     creation_time = models.IntegerField()
@@ -107,7 +107,7 @@ class ProdAssocTable(models.Model):
         managed = False
         db_table = 'prod_assoc_table'
         unique_together = (('user', 'acct', 'partition'),)
-
+        app_label = 'slurm'
 
 class ProdAssocUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -122,7 +122,7 @@ class ProdAssocUsageDayTable(models.Model):
         managed = False
         db_table = 'prod_assoc_usage_day_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdAssocUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -137,7 +137,7 @@ class ProdAssocUsageHourTable(models.Model):
         managed = False
         db_table = 'prod_assoc_usage_hour_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdAssocUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -152,7 +152,7 @@ class ProdAssocUsageMonthTable(models.Model):
         managed = False
         db_table = 'prod_assoc_usage_month_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdEventTable(models.Model):
     time_start = models.IntegerField()
@@ -168,7 +168,7 @@ class ProdEventTable(models.Model):
         managed = False
         db_table = 'prod_event_table'
         unique_together = (('node_name', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdJobTable(models.Model):
     job_db_inx = models.AutoField(primary_key=True)
@@ -213,7 +213,7 @@ class ProdJobTable(models.Model):
         managed = False
         db_table = 'prod_job_table'
         unique_together = (('id_job', 'id_assoc', 'time_submit'),)
-
+        app_label = 'slurm'
 
 class ProdLastRanTable(models.Model):
     hourly_rollup = models.IntegerField()
@@ -223,7 +223,7 @@ class ProdLastRanTable(models.Model):
     class Meta:
         managed = False
         db_table = 'prod_last_ran_table'
-
+        app_label = 'slurm'
 
 class ProdResvTable(models.Model):
     id_resv = models.IntegerField()
@@ -241,7 +241,7 @@ class ProdResvTable(models.Model):
         managed = False
         db_table = 'prod_resv_table'
         unique_together = (('id_resv', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdStepTable(models.Model):
     job_db_inx = models.IntegerField()
@@ -296,7 +296,7 @@ class ProdStepTable(models.Model):
         managed = False
         db_table = 'prod_step_table'
         unique_together = (('job_db_inx', 'id_step'),)
-
+        app_label = 'slurm'
 
 class ProdSuspendTable(models.Model):
     job_db_inx = models.IntegerField()
@@ -307,7 +307,7 @@ class ProdSuspendTable(models.Model):
     class Meta:
         managed = False
         db_table = 'prod_suspend_table'
-
+        app_label = 'slurm'
 
 class ProdUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -326,7 +326,7 @@ class ProdUsageDayTable(models.Model):
     class Meta:
         managed = False
         db_table = 'prod_usage_day_table'
-
+        app_label = 'slurm'
 
 class ProdUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -345,7 +345,7 @@ class ProdUsageHourTable(models.Model):
     class Meta:
         managed = False
         db_table = 'prod_usage_hour_table'
-
+        app_label = 'slurm'
 
 class ProdUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -364,7 +364,7 @@ class ProdUsageMonthTable(models.Model):
     class Meta:
         managed = False
         db_table = 'prod_usage_month_table'
-
+        app_label = 'slurm'
 
 class ProdWckeyTable(models.Model):
     creation_time = models.IntegerField()
@@ -379,7 +379,7 @@ class ProdWckeyTable(models.Model):
         managed = False
         db_table = 'prod_wckey_table'
         unique_together = (('wckey_name', 'user'),)
-
+        app_label = 'slurm'
 
 class ProdWckeyUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -396,7 +396,7 @@ class ProdWckeyUsageDayTable(models.Model):
         managed = False
         db_table = 'prod_wckey_usage_day_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdWckeyUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -413,7 +413,7 @@ class ProdWckeyUsageHourTable(models.Model):
         managed = False
         db_table = 'prod_wckey_usage_hour_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class ProdWckeyUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -430,7 +430,7 @@ class ProdWckeyUsageMonthTable(models.Model):
         managed = False
         db_table = 'prod_wckey_usage_month_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class QosTable(models.Model):
     creation_time = models.IntegerField()
@@ -466,7 +466,7 @@ class QosTable(models.Model):
     class Meta:
         managed = False
         db_table = 'qos_table'
-
+        app_label = 'slurm'
 
 class ResTable(models.Model):
     creation_time = models.IntegerField()
@@ -484,7 +484,7 @@ class ResTable(models.Model):
         managed = False
         db_table = 'res_table'
         unique_together = (('name', 'server', 'type'),)
-
+        app_label = 'slurm'
 
 class TableDefsTable(models.Model):
     creation_time = models.IntegerField()
@@ -495,7 +495,7 @@ class TableDefsTable(models.Model):
     class Meta:
         managed = False
         db_table = 'table_defs_table'
-
+        app_label = 'slurm'
 
 class TxnTable(models.Model):
     timestamp = models.IntegerField()
@@ -508,7 +508,7 @@ class TxnTable(models.Model):
     class Meta:
         managed = False
         db_table = 'txn_table'
-
+        app_label = 'slurm'
 
 class UohAssocTable(models.Model):
     creation_time = models.IntegerField()
@@ -546,7 +546,7 @@ class UohAssocTable(models.Model):
         managed = False
         db_table = 'uoh_assoc_table'
         unique_together = (('user', 'acct', 'partition'),)
-
+        app_label = 'slurm'
 
 class UohAssocUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -561,7 +561,7 @@ class UohAssocUsageDayTable(models.Model):
         managed = False
         db_table = 'uoh_assoc_usage_day_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohAssocUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -576,7 +576,7 @@ class UohAssocUsageHourTable(models.Model):
         managed = False
         db_table = 'uoh_assoc_usage_hour_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohAssocUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -591,7 +591,7 @@ class UohAssocUsageMonthTable(models.Model):
         managed = False
         db_table = 'uoh_assoc_usage_month_table'
         unique_together = (('id_assoc', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohEventTable(models.Model):
     time_start = models.IntegerField()
@@ -607,7 +607,7 @@ class UohEventTable(models.Model):
         managed = False
         db_table = 'uoh_event_table'
         unique_together = (('node_name', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohJobTable(models.Model):
     job_db_inx = models.AutoField(primary_key=True)
@@ -649,10 +649,10 @@ class UohJobTable(models.Model):
     track_steps = models.IntegerField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'uoh_job_table'
         unique_together = (('id_job', 'id_assoc', 'time_submit'),)
-
+        app_label = 'slurm'
 
 class UohLastRanTable(models.Model):
     hourly_rollup = models.IntegerField()
@@ -662,7 +662,7 @@ class UohLastRanTable(models.Model):
     class Meta:
         managed = False
         db_table = 'uoh_last_ran_table'
-
+        app_label = 'slurm'
 
 class UohResvTable(models.Model):
     id_resv = models.IntegerField()
@@ -680,7 +680,7 @@ class UohResvTable(models.Model):
         managed = False
         db_table = 'uoh_resv_table'
         unique_together = (('id_resv', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohStepTable(models.Model):
     job_db_inx = models.IntegerField()
@@ -735,7 +735,7 @@ class UohStepTable(models.Model):
         managed = False
         db_table = 'uoh_step_table'
         unique_together = (('job_db_inx', 'id_step'),)
-
+        app_label = 'slurm'
 
 class UohSuspendTable(models.Model):
     job_db_inx = models.IntegerField()
@@ -746,7 +746,7 @@ class UohSuspendTable(models.Model):
     class Meta:
         managed = False
         db_table = 'uoh_suspend_table'
-
+        app_label = 'slurm'
 
 class UohUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -765,7 +765,7 @@ class UohUsageDayTable(models.Model):
     class Meta:
         managed = False
         db_table = 'uoh_usage_day_table'
-
+        app_label = 'slurm'
 
 class UohUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -784,7 +784,7 @@ class UohUsageHourTable(models.Model):
     class Meta:
         managed = False
         db_table = 'uoh_usage_hour_table'
-
+        app_label = 'slurm'
 
 class UohUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -803,7 +803,7 @@ class UohUsageMonthTable(models.Model):
     class Meta:
         managed = False
         db_table = 'uoh_usage_month_table'
-
+        app_label = 'slurm'
 
 class UohWckeyTable(models.Model):
     creation_time = models.IntegerField()
@@ -818,7 +818,7 @@ class UohWckeyTable(models.Model):
         managed = False
         db_table = 'uoh_wckey_table'
         unique_together = (('wckey_name', 'user'),)
-
+        app_label = 'slurm'
 
 class UohWckeyUsageDayTable(models.Model):
     creation_time = models.IntegerField()
@@ -835,7 +835,7 @@ class UohWckeyUsageDayTable(models.Model):
         managed = False
         db_table = 'uoh_wckey_usage_day_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohWckeyUsageHourTable(models.Model):
     creation_time = models.IntegerField()
@@ -852,7 +852,7 @@ class UohWckeyUsageHourTable(models.Model):
         managed = False
         db_table = 'uoh_wckey_usage_hour_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UohWckeyUsageMonthTable(models.Model):
     creation_time = models.IntegerField()
@@ -869,7 +869,7 @@ class UohWckeyUsageMonthTable(models.Model):
         managed = False
         db_table = 'uoh_wckey_usage_month_table'
         unique_together = (('id_wckey', 'time_start'),)
-
+        app_label = 'slurm'
 
 class UserTable(models.Model):
     creation_time = models.IntegerField()
@@ -881,3 +881,4 @@ class UserTable(models.Model):
     class Meta:
         managed = False
         db_table = 'user_table'
+        app_label = 'slurm'

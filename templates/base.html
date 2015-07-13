@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/1.10.7/integration/foundation/dataTables.foundation.css">
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="//cdn.datatables.net/responsive/1.0.6/css/dataTables.responsive.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <style>
     /* need to put in own document */
     .axis path,
@@ -62,29 +63,50 @@
     table {
       table-layout: fixed;
     }
-
+    {% load staticfiles %}
     body { 
-      background-image: url('http://www5.pbrc.hawaii.edu/logos/UH_Seal3435.jpg');
+      background-image: url('http://jabsom.hawaii.edu/wp-content/uploads/2015/02/seal.jpg');
       background-size: 200px;
       background-repeat: no-repeat;
       background-attachment: fixed;
       background-position: 95% 95%; 
     }
 
+    #hideAll
+    {
+      position: fixed;
+      left: 0px; 
+      right: 0px; 
+      top: 0px; 
+      bottom: 0px; 
+      background-color: white;
+      z-index: 99; /* Higher than anything else in the document */
+
+    }
+
     </style>
   </head>
+  {% url 'user_dashboard' as dashboard %} {% url 'user_history' as history %}
   <div class="contain-to-grid sticky">
     <nav class="top-bar" data-topbar role="navigation" data-options="sticky_on: large">
       <ul class="title-area">
         <li class="name">
-          <h1><a href = "./">HPC Web Portal</a></h1>
+          <h1><a href = "{% url 'user_dashboard' %}">HPC Web Portal</a></h1>
         </li>
         <li class="toggle-topbar menu-icon"><a href="#"><span></span></a></li>
       </ul>
       <section class="top-bar-section">
         <ul class="left">
-          <li class="active"><a href="./">Dashboard</a></li>
-          <li><a href="./history">Job History</a></li>
+          {% if request.path == dashboard %}
+          <li class="active"><a href="{{ dashboard }}">Dashboard</a></li>
+          {% else %}
+          <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+          {% endif %}
+          {% if request.path == history %}
+          <li class="active"><a href="{{ history }}">Job History</a></li>
+          {% else %}
+          <li><a href="{%url 'user_history' %}">Job History</a></li>
+          {% endif %}
         </ul>
       </section>
     </nav>
