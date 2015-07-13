@@ -6,7 +6,7 @@ from .forms import UsernameForm
 from .models import UohJobTable
 import datetime
 import json
-from django.contrib.auth.decorators import login_required
+from .decorators import token_or_login_required
 
 ## DLS ##
 # when moving from testing to live, we need to switch between 
@@ -54,7 +54,7 @@ def get_username(form):
          return username
 
 # The view for returning job history
-#@login_required
+#@token_or_login_required
 def user_history(request):
     submitted = False
     exists = True
@@ -114,7 +114,7 @@ def tcpuhours(allJobs):
     return total_cpuhours
 
 # View for displaynig the dashboard
-#@login_required
+#@token_or_login_required
 def dashboard(request):
     submitted = False
     exists = True
@@ -201,7 +201,7 @@ def get_json_time(allJobs, numMonths):
 
 
 # Returns the JSON of get_json_jobs
-#@login_required
+#@token_or_login_required
 def print_jobs(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
@@ -210,7 +210,7 @@ def print_jobs(request, uid):
 
 
 # Returns the JSON of get_json_time
-#@login_required
+#@token_or_login_required
 def print_time(request, uid):
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
