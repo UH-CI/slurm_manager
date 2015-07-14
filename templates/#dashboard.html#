@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block sub_heading %} User Dashboard{% if uname %}: {{uname}}{% endif %} {% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="large-12 columns">
+    <h1>User Dashboard</h1>
+    <hr/>
+  </div>
+</div>
+<div class = "row">
+   <div class = "large-12 columns">
+    <form action="{% url 'user_dashboard' %}" method="post">
+      {% csrf_token %}
+      <div class = "row large-6 columns error">{{ form.non_field_errors }}</div>
+      <div class = "row large-6 columns error">{{ form.username.errors }}</div>
+      <div class = "row">
+        <div class = "large-6 columns">
+    	    <div class = "row collapse prefix-radius">
+            <div class = "small-2 columns"><span class = "prefix">{{ form.username.label }}</span></div>
+            <div class = "small-9 columns">{{ form.username }}</div>
+            <div class = "small-1 columns">
+              <div class="row collapse postfix-round"><input class="button postfix" type="submit" value="Go!"></div>
+            </div>
+        	</div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% if submitted %}
+{% if exists %}
+<span class="success alert label"><b>Username:</b> {{ uname }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span>
+<br /><br />
+
+<div class="row">
+  <div class="small-6 columns">
+  <dl class="accordion" data-accordion="job-i-accordion">
+    <dd class="accordion-navigation">
+      <a href="#job-info"><strong>Job Statistics</strong></a>
+      <div id="job-info" class="content active">
+        <ul class="square">  
+          <li><kbd>{{ total_jobs.6 }}</kbd><strong> jobs currently running</strong></li>
+
+          <li><kbd>{{ total_jobs.7 }}</kbd> jobs pending</li>
+
+          <li><kbd>{{ total_jobs.0 }}</kbd> jobs started this past week</li>
+
+          <li><kbd>{{ total_jobs.1 }}</kbd> jobs started this past month</li>
+        </ul>
+        <hr>
+        <strong>Lifetime Statistics</strong><br>
+        <ul class="square">
+          <li><kbd>{{ total_jobs.2 }}</kbd> jobs started</li>
+
+          <li><kbd>{{ total_jobs.3 }}</kbd> jobs completed</li>
+
+          <li><kbd>{{ total_jobs.4 }}</kbd> jobs failed</li>
+
+          <li><kbd>{{ total_jobs.5 }}</kbd> jobs cancelled</li>
+        </ul>
+      </div>
+    </dd>
+  </dl>
+  <br>
+  <dl class="accordion" data-accordion="time-i-accordion">
+    <dd class="accordion-navigation">
+      <a href="#time-info"><strong>Core Time</strong><span data-tooltip aria-haspopup="true" class="has-tip" title="Core time is the total amount of CPUs used multiplied by the runtime."><i class="fa fa-info-circle" style="vertical-align: sub; font-size: 11px;"></i></span><strong> by Month</strong></a>
+      <div id="time-info" class="content active">
+        <span style = "float: right; font-size: 12.5px;">listed in <kbd>hours:minutes:seconds</kbd></span><br>
+        <ul class="square">
+          <li><kbd>{{ total_cpuhours.0 }}</kbd> used this past week</li>
+
+          <li><kbd>{{ total_cpuhours.1 }}</kbd> used this past month</li>
+        </ul>
+        <hr>
+        <strong>Lifetime Statistics</strong><br>
+        <ul class="square">
+          <li><kbd>{{ total_cpuhours.3 }}</kbd> requested</li>
+          <li><kbd>{{ total_cpuhours.2 }}</kbd> used</li>
+          <ul class="square">
+            <li><kbd>{{ total_cpuhours.4 }}%</kbd> of requested core time was actually used</li>
+          </ul>
+        </ul>
+      </div>
+    </dd>
+  </dl>
+  <br> More stuff here?
+  </div>
+  <div class="small-6 columns">
+  <dl class="accordion" data-accordion="job-accordion">
+    <dd class="accordion-navigation">
+      <a href="#job-1"><strong>Jobs by Month</strong></a>
+      <div id="job-1" align = "center" class="content active">
+        <p id="job_chart"></p>
+      </div>
+    </dd>
+  </dl>
+  <br>
+  <dl class="accordion" data-accordion="time-accordion">
+    <dd class="accordion-navigation">
+      <a href="#time-1"><strong>Core Time</strong><span data-tooltip aria-haspopup="true" class="has-tip" title="Core time is the total amount of CPUs used multiplied by the runtime."><i class="fa fa-info-circle" style="vertical-align: sub; font-size: 11px;"></i></span><strong> by Month</strong></a>
+      <div id="time-1" align = "center" class="content active">
+        <p id="time_chart"></p>
+      </div>
+    </dd>
+  </dl>
+  </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+  var numMonths = 11; // should be set to  in template
+  // core variables for bar chart
+  var width = 475;
+  var height = 350;
+  var padding = width / 17; //space from the edge of CSV, prevent y-axis ticks getting cut off
+  var barWidth = width / 18;
+
+  // calling functions to get the earliest month
+  var current = new Date(), // current date 
+    currentMonth = current.getMonth(),
+    currentYear = current.getFullYear();
+
+  var dMonths = new Date(currentYear, currentMonth, 1); // delta months
+    dMonths = new Date(dMonths.setMonth(current.getMonth() - numMonths));
+  
+  current.setMonth(currentMonth + 1);
+  current.setDate(0); // getting last day of the month, ensures that graph doesn't get cut off
+
+  // function to draw bar graphs (currently the job graph and cpu time graph)
+  function drawGraph(jsonsrc, div_element) {
+    d3.json(jsonsrc, function(data) {
+      var canvas = d3.select(div_element)
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+
+      var yScale = d3.scale.linear()
+        .domain([0, d3.max(data, function(d) {return d.y}) * 1.25])
+        .range([height - padding, padding]);
+
+      var xTime = d3.time.scale() //months
+        .domain([dMonths, current])
+        .range([padding * 2, width - padding]);
+
+      var xScale = d3.time.scale() //json gives integers, not date object
+        .domain([dMonths, current])
+        .range([padding * 2.25, width - padding]);
+
+      var xAxis = d3.svg.axis() //months
+        .scale(xTime)
+        .orient("bottom")
+        .ticks(d3.time.months)
+        .tickSize(16, 0)
+        .tickFormat(d3.time.format("%b"));
+
+      var yAxis = d3.svg.axis()
+            .scale(yScale)
+            .orient("left");
+        
+        var tip = d3.tip() // tooltip
+          .attr("class", "d3-tip")
+          .offset([-10, 0]);
+          // will need to adjust below if more graph types arise
+          if(div_element == "#job_chart") {
+          tip.html(function(d) {
+              return "<strong>Total Jobs: </strong>" + d.y + "<br>&#8195; Completed: " + d.completed + "<br>&#8195; Failed: " + d.failed + "<br>&#8195; Cancelled: " + d.cancelled;
+            });
+        }
+          else {
+            tip.html(function(d) {
+              return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0;
+            });
+          }
+
+      canvas.selectAll("rect")
+          .data(data)
+          .enter()
+            .append("rect")
+              .attr("height", 0)
+              .attr("width", barWidth)
+              .attr("y", height - padding)
+              .attr("x", function(d, i) {
+                dateToUse = new Date(currentYear, currentMonth, 1);
+                dateToUse.setMonth(current.getMonth() - i);
+                return xScale(dateToUse);
+              })
+              //.attr("x", function (d, i) { return xScale(numMonths - i + 1); })
+              .attr("class", "bar")
+              .attr("fill", "#4DB870")
+              .on('mouseover', tip.show)
+                  .on('mouseout', tip.hide)
+                .transition()
+                  .delay(function(d, i) { return (numMonths + 1 - i) * 75; })
+                  .duration(250)
+                  .attr("y", function (d) { return yScale(d.y); })
+                  .attr("height", function (d) { return height - padding - yScale(d.y); });
+
+      canvas.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - padding) + ")")
+        .call(xAxis)
+        .selectAll(".tick text")
+            .style("text-anchor", "start")
+            .attr("x", 6)
+            .attr("y", 6);
+
+      canvas.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(" + padding * 2 + ",0)")
+          .call(yAxis)
+          .call(tip);
+    });
+  };
+  drawGraph("./getjobs/{{ uid }}", "#job_chart");
+  drawGraph("./gettime/{{ uid }}", "#time_chart");
+//});
+</script>
+
+{% else %}
+<b><font color = "red">You have entered an invalid username.</b></font><a href = "./"> Back</a>
+{% endif %}
+{% else %}
+<br> This area will be populated upon entering a valid username. <br>
+{% endif %}
+{% endblock %}
