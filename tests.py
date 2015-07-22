@@ -9,6 +9,7 @@ import pseudopwd as pwd
 # Create your tests here.
 
 class SetUpTestCase(TestCase):
+    multi_db = True
     fixtures = ['newout.json'] # populate the database with root jobs    
     def test_get_jobs(self):
         allJobs = get_jobs(0)
@@ -20,6 +21,7 @@ class SetUpTestCase(TestCase):
         self.assertEqual(allJobs[0].id_user, 0)
 
 class HistoryTestCase(TestCase):
+    multi_db = True
     fixtures = ['newout.json'] # populate the database with root jobs
     def test_form(self):
         form_data = {'username': 'root'}
@@ -32,6 +34,7 @@ class HistoryTestCase(TestCase):
         self.assertEqual(get_username(form), 'root')
 
 class DashTestCase(TestCase):
+    multi_db = True
     fixtures = ['newout.json']
     def test_print_views(self):
         request = 'test request'
@@ -54,4 +57,7 @@ class DashTestCase(TestCase):
         allJobs = change_times(allJobs)
         total_jobs = tjobs(allJobs)
         self.assertEqual(total_jobs[0], 0)
+        self.assertEqual(total_jobs[1], 0)
         total_time = tcpuhours(allJobs)
+        self.assertEqual(total_time[0], datetime.timedelta(0))
+        self.assertEqual(total_time[1], datetime.timedelta(0))

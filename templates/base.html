@@ -60,12 +60,11 @@
         left: 0;
     }
 
-    table {
+    /*table {
       table-layout: fixed;
-    }
-
+    }*/
     body { 
-      background-image: url('http://jabsom.hawaii.edu/wp-content/uploads/2015/02/seal.jpg');
+      background-image: url('/static/seal.jpg');
       background-size: 200px;
       background-repeat: no-repeat;
       background-attachment: fixed;
@@ -86,7 +85,9 @@
 
     </style>
   </head>
-  {% url 'user_dashboard' as dashboard %} {% url 'user_history' as history %}
+  {% url 'user_dashboard' as dashboard %} {% url 'user_history' as history %} {% url 'cluster_stats' as cluster %} 
+  {% url 'login' as login %}
+
   <div class="contain-to-grid sticky">
     <nav class="top-bar" data-topbar role="navigation" data-options="sticky_on: large">
       <ul class="title-area">
@@ -95,23 +96,52 @@
         </li>
         <li class="toggle-topbar menu-icon"><a href="#"><span></span></a></li>
       </ul>
+      {% if request.user.is_authenticated %}
       <section class="top-bar-section">
         <ul class="left">
           {% if request.path == dashboard %}
           <li class="active"><a href="{{ dashboard }}">Dashboard</a></li>
           {% else %}
-          <li><a href="{% url 'user_dashboard' %}">Dashboard</a></li>
+          <li><a href="{{ dashboard }}">Dashboard</a></li>
           {% endif %}
           {% if request.path == history %}
           <li class="active"><a href="{{ history }}">Job History</a></li>
           {% else %}
-          <li><a href="{%url 'user_history' %}">Job History</a></li>
+          <li><a href="{{ history }}">Job History</a></li>
+          {% endif %}
+          {% if request.path == cluster %}
+          <li class="active"><a href="{{ cluster }}">Cluster Statistics</a></li>
+          {% else %}
+          <li><a href="{{ cluster }}">Cluster Statistics</a></li>
+          {% endif %}
+        </ul>
+        <ul class="right">
+          <li class="has-dropdown">
+            <a href="#"><i class="fa fa-user"></i> {{ request.user.username }}</a>
+            <ul class="dropdown"> 
+              <li><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      {% else %}
+      <section class="top-bar-section">
+        <ul class="left">
+          {% if request.path == login %}
+            <li class="active"><a href="/HPC_Portal/accounts/login/?next=/HPC_Portal/">Login</a></li>
+            {% else %}
+            <li><a href="/HPC_Portal/accounts/login/?next=/HPC_Portal/">Login</a></li>
+          {% endif %}
+          {% if request.path == cluster %}
+            <li class="active"><a href="{{ cluster }}">View Cluster Statistics</a></li>
+            {% else %}
+            <li><a href="{{ cluster }}">View Cluster Statistics</a></li>
           {% endif %}
         </ul>
       </section>
+      {% endif %}
     </nav>
   </div>
-
   <body>
     <div class="row">     
       <div class="large-12 columns">
@@ -154,7 +184,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/foundation/foundation.topbar.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/fastclick.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/jquery.cookie.js"></script>
-{#    <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/jquery.js"></script>#}
+    {# <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/jquery.js"></script> #}
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/modernizr.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/js/vendor/placeholder.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>

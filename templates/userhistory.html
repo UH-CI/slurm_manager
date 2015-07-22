@@ -8,6 +8,7 @@
     <hr/>
   </div>
 </div>
+{% if request.user.is_staff %}
 <div class = "row">
    <div class = "large-12 columns">
     <form action="{% url 'user_history' %}" method="post">
@@ -85,8 +86,58 @@
     <br>This area will be populated upon entering a valid username. 
   {% endif %}
  {% else %}
-  <b><font color = "red">You have entered an invalid username.</b></font><a href = "./history"> Back</a>
+  <b><font color = "red">You have entered an invalid username.</b></font><a href = "{% url 'user_history' %}"> Back</a>
  {% endif %}
+{% else %}
+<span class="success alert label"><b>Username:</b> {{ request.user.username }} </span> <span class="info label"><b>UserID:</b> {{ uid }} </span>
+    <br /><br />
+    <div align="center" style="display: block;" id="loadCircle"><i class="fa fa-cog fa-spin fa-2x"></i><i class="fa fa-cog fa-spin fa-4x"></i><i class="fa fa-cog fa-spin fa-2x"></i><br>We are processing your request!<br>This will take up to 15 seconds, depending on how many jobs you have.</div>
+    <table id="historyTable" style="display: none;" class = "display" cellspacing = "0" width = "100%">
+     <thead>
+      <tr>
+        <th>JobID</th>
+        <th>Job Name</th>
+        <th>Job State</th>
+        <th>Time Started</th>
+        <th>Time Ended</th>
+        <th title="hh:mm:ss">Total Time</th>
+        <th title="hh:mm:ss">Requested Time</th>
+        <th>CPUs Allocated</th>
+        <th>Core Time<span data-tooltip aria-haspopup="true" class="has-tip" title="Core time is the total amount of CPUs used multiplied by the runtime."><i class="fa fa-info-circle" style="vertical-align: sub; font-size: 11px;"></i></th>
+        <th>Memory Requested (MB)</th>
+      </tr>
+     </thead>
+     <tfoot></tfoot>
+     <tbody>
+      {% for job in allJobs %}
+      <tr>
+        <td>{{ job.job_db_inx }}</td>
+        <td>{{ job.job_name }}</td>
+        <td>{{ job.state }}</td>
+        <td>{{ job.time_start|date:"Y/m/d, H:i:s" }}</td>
+        <td>{{ job.time_end|date:"Y/m/d, H:i:s" }}</td>
+        {% if job.runtime.days == 0 %}
+        <td>0 days, {{ job.runtime }}</td>
+        {% else %}
+        <td>{{ job.runtime }}</td>
+        {% endif %}
+        {% if job.timelimit.days == 0 %}
+        <td>0 days, {{ job.timelimit }}</td>
+        {% else %}
+        <td>{{ job.timelimit }}</td>
+        {% endif %}
+        <td>{{ job.cpus_alloc }} </td>
+        {% if job.cputime.days == 0 %}
+        <td>0 days, {{ job.cputime }}</td>
+        {% else %}
+        <td>{{ job.cputime }}</td>
+        {% endif %}
+        <td>{{ job.mem_req }}</td>
+      </tr>
+      {% endfor %}
+     </tbody>
+   </table>
+{% endif %}
 </div>
 </div>
 {% endblock %}

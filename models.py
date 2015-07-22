@@ -882,3 +882,24 @@ class UohJobTable(models.Model):
     #     managed = True
     #     db_table = 'user_table'
     #     app_label = 'slurm_manager'
+
+
+class ClusterJobs(models.Model):
+    date = models.DateField(primary_key=True)
+    completed = models.IntegerField()
+    failed = models.IntegerField()
+    cancelled = models.IntegerField()
+    total = models.IntegerField()
+    class Meta:
+        managed = True
+        app_label = 'slurm_manager'
+        db_table = 'slurm_cluster_jobs'
+        
+class ClusterTime(models.Model):
+    date = models.DateField(primary_key=True)
+    time_used = models.BigIntegerField()
+    time_requested = models.BigIntegerField()
+    class Meta:
+        managed = True
+        app_label = 'slurm_manager'
+        db_table = 'cluster_time'

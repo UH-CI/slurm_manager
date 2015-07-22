@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block sub_heading %}Login{% endblock %}
+{% block body %}
+<div class="row">
+  <div class="large-2 columns">&nbsp;</div>
+  <div class="large-8 columns" align="center">
+    <br><span style="font-size: 18px;"><strong>Welcome to UH Manoa's HPC Portal!</strong></span><br>
+    <span style="font-size: 16px;">Please login to continue.</span><br><br>
+  </div>
+  <div class="large-2 columns">&nbsp;</div>
+</div>
+<div class="row">     
+	<div class="large-2 columns">&nbsp;</div>
+	<div class="large-8 columns" align="center">
+		<form method="post" action="{% url 'login' %}">
+		{% csrf_token %}
+		<div class="row collapse">
+			<div class="small-1 columns">
+         <span class="prefix"><i class="fa fa-user"></i></span>
+      </div>
+      <div class="small-4 columns">
+				{{ form.username }}
+			</div>
+			<div class="small-1 columns">
+        <span class="prefix"><i class="fa fa-key"></i></span>
+      </div>
+      <div class="small-4 columns">
+				{{ form.password }}
+			</div>
+			<div class="small-2 columns">
+			<button class="button postfix" type="submit" value="Login" /><i class="fa fa-sign-in"></i> Login</button>
+			<input type="hidden" name="next" value="{{ next }}" />
+			</div>
+		</div>
+		{% if form.errors %}
+	 	<p style="color: red;"><strong>Your username and/or password was incorrect. Please try again.</strong></p>
+	 	{% endif %}
+		</form>
+	</div>
+	<div class="large-2 columns">&nbsp;</div>
+</div>
+{% endblock %}
+
+
+
