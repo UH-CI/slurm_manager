@@ -9,5 +9,5 @@ urlpatterns = [
     url(r'^clusterjobs/$', views.cluster_jobs, name = 'cluster_jobs'),
     url(r'^clustertime/$', views.cluster_time, name = 'cluster_time'),
     url(r'^cluster/$', views.cluster, name = 'cluster_stats'),
-    url(r'^populate/$', views.populate_time, name = 'populate_time'),
+    url(r'^populate/$', views.fresh_table, name = 'fresh_table'),
 ]

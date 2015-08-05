@@ -66,7 +66,7 @@
         }
           else {
             tip.html(function(d) {
-              return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0;
+              return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0 + "<br><strong>Total Core Hours Requested: </strong>" + Math.round(d.requested * 10) / 10.0 + "<br><strong>% of Requested Time Actually Used: </strong>" + Math.round(d.ratio * 10) / 10.0 + "%";
             });
           }
 

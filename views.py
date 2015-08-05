@@ -21,6 +21,22 @@ import pseudopwd as pwd
 
 states = ['Pending', 'Running', 'Suspended', 'Complete', 'Cancelled', 'Failed', 'Timeout', 'Node Failed', 'Preempted', 'Boot Failure']
 
+def get_current_time():
+    now = datetime.datetime.now()
+    return {'datetime': now, 'year': now.year, 'month': now.month, 'week': now.isocalendar()[1], 'day': now.day, 'hour': now.hour, 'minute': now.minute, 'second': now.second}
+
+def unix_time(date):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    since_epoch = date - epoch
+    return since_epoch.total_seconds()
+
+def unix_month(month, year):
+    begin_unix_month = unix_time(datetime.datetime(year, month, 1))
+    if(month == 12): #special case for december
+        end_unix_month = unix_time(datetime.datetime(year, month, 31, 23, 59, 59, 999999))
+    else:
+        end_unix_month = unix_time(datetime.datetime(year, month + 1, 1, 23, 59, 59, 999999) - datetime.timedelta(days=1))
+    return{'begin': begin_unix_month, 'end': end_unix_month}
 
 ### User History View
 ## Base functions: change_times, get_jobs, get_username
@@ -85,13 +101,12 @@ def user_history(request):
 
 # Returns a list of total jobs performed this week, month, and since the dawn of time
 def tjobs(allJobs):
-    this_week = datetime.datetime.now().isocalendar()[1]
-    this_month = datetime.datetime.now().month
+    now = get_current_time()
     total_jobs = [0, 0, 0, 0, 0, 0, 0, 0] # [week, month, lifetime, total completed, total failed, total cancelled, running, pending]
     for job in allJobs:
-        if(job.time_start.isocalendar()[1] == this_week):
+        if(job.time_start.isocalendar()[1] == now['week']):
             total_jobs[0] += 1
-        if(job.time_start.month == this_month):
+        if(job.time_start.month == now['month']):
             total_jobs[1] += 1
         if(job.state == 'Complete'):
             total_jobs[3] += 1
@@ -110,13 +125,12 @@ def tjobs(allJobs):
 # and a ratio of cpuhours used vs. cpuhours requested
 
 def tcpuhours(allJobs):
-    this_week = datetime.datetime.now().isocalendar()[1]
-    this_month = datetime.datetime.now().month
+    now = get_current_time()
     total_cpuhours = [datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), datetime.timedelta(0), str(0)] # [week, month, lifetime, lifetime requested, ratio]
     for job in allJobs:
-        if(job.time_start.isocalendar()[1] == this_week):
+        if(job.time_start.isocalendar()[1] == now['week']):
             total_cpuhours[0] += job.cputime 
-        if(job.time_start.month == this_month):
+        if(job.time_start.month == now['month']):
             total_cpuhours[1] += job.cputime
         total_cpuhours[2] += job.cputime
         total_cpuhours[3] += job.timelimit * job.cpus_alloc
@@ -159,40 +173,41 @@ def dashboard(request):
 ## Base functions: get_json_jobs, get_json_time
 
 # Returns a JSON of jobs completed in the last numMonths, by month and year
-def get_json_jobs(allJobs, numMonths):
+def get_json_jobs(uid, numMonths):
     json_dict = []
-    now = datetime.date.today()
-    current_month = now.month
-    current_year = now.year
-    target_date = now - datetime.timedelta(numMonths * 365 / 12)
+    now = get_current_time()
+    target_date = now['datetime'] - datetime.timedelta(numMonths * 365 / 12)
     target_year = target_date.year
     target_month = target_date.month
     #create the empty list of dictionaries
-    while (current_month != target_month or current_year != target_year):
-        tempMon = {'year': current_year, 'month': current_month, 'y': 0, 'completed': 0, 'failed': 0, 'cancelled': 0}
+    while (now['month'] != target_month or now['year'] != target_year):
+        tempMon = {'year': now['year'], 'month': now['month'], 'y': 0, 'completed': 0, 'failed': 0, 'cancelled': 0}
         json_dict.append(tempMon)
-        if(current_month - 1 == 0):
-            current_month = 12
-            current_year -= 1
+        if(now['month'] - 1 == 0):
+            now['month'] = 12
+            now['year'] -= 1
         else:
-            current_month -= 1
-    #go through all jobs and match them to dictionaries, increment counters
-    for job in reversed(allJobs):
-        if(job.time_end != 0):
-            for month in json_dict:
-                if month['month'] == job.time_end.month and month['year'] == job.time_end.year:
-                    month['y'] += 1
-                    if(job.state == 'Cancelled'):
-                        month['cancelled'] += 1
-                    if(job.state == 'Failed'):
-                        month['failed'] += 1
-                    if(job.state == 'Complete'):
-                        month['completed'] += 1
+            now['month'] -= 1
+    #go json_dict and calculate totals
+    for month in json_dict:
+        total_jobs = 0
+        unix_times = unix_month(month['month'], month['year'])
+        begin_unix_month = unix_times['begin']
+        end_unix_month = unix_times['end']
+        monthJobs = UohJobTable.objects.filter(id_user = uid).filter(time_start__gte = 1420070400).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).values('state').annotate(jobcount = Count('state')).order_by('state')
+        state_totals = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for state in monthJobs: #count all the jobs
+            total_jobs += state['jobcount']
+            state_totals[state['state']] = state['jobcount']
+        month['completed'] = state_totals[3]
+        month['cancelled'] = state_totals[4]
+        month['failed'] = state_totals[5]
+        month['y'] = total_jobs
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
 # Returns a JSON of CPU time consumed in the last numMonths, by month and year
-def get_json_time(allJobs, numMonths):
+def get_json_time(uid, numMonths):
     json_dict = []
     now = datetime.date.today()
     current_month = now.month
@@ -202,21 +217,23 @@ def get_json_time(allJobs, numMonths):
     target_month = target_date.month
     #create the empty list of dictionaries
     while (current_month != target_month or current_year != target_year):
-        tempMon = {'year': current_year, 'month': current_month, 'y': 0.0}
+        tempMon = {'year': current_year, 'month': current_month, 'y': 0.0, 'requested': 0.0, 'ratio': 0.0}
         json_dict.append(tempMon)
         if(current_month - 1 == 0):
             current_month = 12
             current_year -= 1
         else:
             current_month -= 1
-    #go through jobs and match them to dictionaries, += cputime
-    for job in reversed(allJobs):
-        if(job.time_end != 0):
-            for month in json_dict:
-                if month['month'] == job.time_end.month and month['year'] == job.time_end.year:
-                    month['y'] += job.cputime.total_seconds()
+    #go json_dict and calculate totals
     for month in json_dict:
-        month['y'] /= 3600.0 #hour conversion
+        unix_times = unix_month(month['month'], month['year'])
+        begin_unix_month = unix_times['begin']
+        end_unix_month = unix_times['end']
+        allJobs = UohJobTable.objects.filter(id_user = uid).filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+        month['y'] = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
+        month['requested'] = sum(allJobs.values_list('requested', flat = True)) / 60
+        if(month['requested'] != 0):
+            month['ratio'] = month['y'] / month['requested'] * 100
     json_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return json_jobs
 
@@ -229,7 +246,7 @@ def print_jobs(request, uid):
         uid = pwd.getpwnam(request.user.username)[2]
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
-    json_jobs = get_json_jobs(allJobs, 12)
+    json_jobs = get_json_jobs(uid, 12)
     return HttpResponse(json_jobs, content_type='application/json')
 
 # Returns the JSON of get_json_time
@@ -240,7 +257,7 @@ def print_time(request, uid):
         uid = pwd.getpwnam(request.user.username)[2]
     allJobs = get_jobs(uid)
     allJobs = change_times(allJobs)
-    json_time = get_json_time(allJobs, 12)
+    json_time = get_json_time(uid, 12)
     return HttpResponse(json_time, content_type='application/json')
 
 
@@ -248,9 +265,9 @@ def print_time(request, uid):
 ## Base Functions: cluster_jobs, cluster_time
 def populate_empty_jobs_time():
     # assumes all jobs start from January 1, 2015. Populates from August 2014 so 12-month graphs can have data.
-    # does not override existing entries.
+    # final row is one month before the current month. does not override existing entries.
     now = datetime.date.today()
-    last_month = datetime.timedelta(now.day+4, 0) #accounts for 27-day months
+    last_month = datetime.timedelta(now.day, 0)
     starting_time = now - last_month
     current_year = starting_time.year
     current_month = starting_time.month
@@ -258,54 +275,174 @@ def populate_empty_jobs_time():
     target_month = 7
     while(current_month != target_month or current_year != target_year):
         tempdate = datetime.date(current_year, current_month, 1)
-
         tempjob = ClusterJobs.objects.filter(date=tempdate)
         if tempjob.count() == 0:
             j = ClusterJobs(date=tempdate, completed=0, cancelled=0, failed=0, total=0)
             j.save()
-            
         temptime = ClusterTime.objects.filter(date=tempdate)
         if temptime.count() == 0:
             t = ClusterTime(date=tempdate, time_used=0, time_requested=0)
             t.save()
-
         if(current_month - 1 == 0):
             current_month = 12
             current_year -= 1
         else:
             current_month -= 1
 
-def populate_jobs(request):
-    allJobs = UohJobTable.objects.filter(time_start__gte = 1420070400).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'state', 'cpus_alloc')
-    clusterJobs = clusterJobs.objects.all()
+def populate_jobs():
+    clusterJobs = ClusterJobs.objects.all()
+    for month in clusterJobs: #reset it first
+        month.completed = 0
+        month.cancelled = 0
+        month.failed = 0
+        month.total = 0
     for month in clusterJobs:
-
+        total_jobs = 0
+        unix_times = unix_month(month.date.month, month.date.year)
+        begin_unix_month = unix_times['begin']
+        end_unix_month = unix_times['end']
+        monthJobs = UohJobTable.objects.filter(time_start__gte = 1420070400).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).values('state').annotate(jobcount = Count('state')).order_by('state')
+        state_totals = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for state in monthJobs: #count all the jobs
+            total_jobs += state['jobcount']
+            state_totals[state['state']] = state['jobcount']
+        month.completed = state_totals[3]
+        month.cancelled = state_totals[4]
+        month.failed = state_totals[5]
+        month.total = total_jobs
+        month.save()
 
 def populate_time():
-    allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).extra(dict(cputime = 'cpus_alloc', requested = 'timelimit * cpus_alloc'))
-    allJobs = change_times(allJobs)
     clusterTimes = ClusterTime.objects.all()
     for month in clusterTimes: #reset it first
         month.time_used = 0
         month.time_requested = 0
         month.save()
-    for job in reversed(allJobs):
-        for month in clusterTimes:
-            if job.time_start.month == month.date.month and job.time_start.year == month.date.year:
-                month.time_used += job.cputime.total_seconds()
-                month.time_requested += job.requested
-                month.save()
+    for month in clusterTimes:
+        unix_times = unix_month(month.date.month, month.date.year)
+        begin_unix_month = unix_times['begin']
+        end_unix_month = unix_times['end']
+        allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+        month.time_used = sum(allJobs.values_list('cpuhours', flat = True))
+        month.time_requested = sum(allJobs.values_list('requested', flat = True)) * 60 #timelimit is in minutes
+        month.save()
+
+@login_required
+def fresh_table(request):
+    if request.user.is_staff:
+        populate_empty_jobs_time()
+        populate_jobs()
+        populate_time()
+        return HttpResponse('Done.')
+    else:
+        return HttpResponse('Forbidden')
 
 def new_month():
-    now = datetime.date.today()
-    current_month = now.month
-    current_year = now.year
-    new_date = datetime.date(current_year, current_month, 1)
+    now = get_current_time()
+    last_month = datetime.date(now['year'], now['month'], 1) - datetime.timedelta(1, 0)
+    #finalize last month's job tallies
+    clusterJob = ClusterJobs.objects.filter(date__year=last_month.year, date__month=last_month.month)
+    total_jobs = 0
+    unix_times = unix_month(last_month.month, last_month.year)
+    begin_unix_month = unix_times['begin']
+    end_unix_month = unix_times['end']
+    monthJobs = UohJobTable.objects.filter(time_start__gte = 1420070400).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).values('state').annotate(jobcount = Count('state')).order_by('state')
+    state_totals = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for state in monthJobs: #count all the jobs
+        total_jobs += state['jobcount']
+        state_totals[state['state']] = state['jobcount']
+    clusterJob[0].completed = state_totals[3]
+    clusterJob[0].cancelled = state_totals[4]
+    clusterJob[0].failed = state_totals[5]
+    clusterJob[0].total = total_jobs
+    clusterJob[0].save()
+    #finalize last month's cputime tallies
+    clusterTime = ClusterTime.objects.filter(date__year=last_month.year, date__month=last_month.month)
+    allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).filter(Q(time_start__gte = begin_unix_month) & Q(time_start__lte = end_unix_month)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+    clusterTime[0].time_used = sum(allJobs.values_list('cpuhours', flat = True))
+    clusterTime[0].time_requested = sum(allJobs.values_list('requested', flat = True))
+    clusterTime[0].save()
+    #create this month's row in the model
+    new_date = datetime.date(now['year'], now['month'], 1)
     j = ClusterJobs(date=new_date, completed=0, cancelled=0, failed=0, total=0)
     j.save()
     t = ClusterTime(date=new_date, time_used=0, time_requested=0)
     t.save()
 
+def update_month():
+    now = get_current_time()
+    unix_times = unix_month(now['month'], now['year'])
+    begin_unix_month = unix_times['begin']
+    #jobs
+    monthJobs = UohJobTable.objects.filter(time_start__gte = begin_unix_month).values('state').annotate(jobcount = Count('state')).order_by('state')
+    state_totals = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for state in monthJobs: #count all the jobs
+        total_jobs += state['jobcount']
+        state_totals[state['state']] = state['jobcount']
+    clusterJob[0].completed = state_totals[3]
+    clusterJob[0].cancelled = state_totals[4]
+    clusterJob[0].failed = state_totals[5]
+    clusterJob[0].total = total_jobs
+    clusterJob[0].save()
+    #cputime
+    clusterTime = ClusterTime.objects.filter(date__year=last_month.year, date__month=last_month.month)
+    allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = begin_unix_month)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+    clusterTime[0].time_used = sum(allJobs.values_list('cpuhours', flat = True))
+    clusterTime[0].time_requested = sum(allJobs.values_list('requested', flat = True))
+    clusterTime[0].save()
+
+def cluster_jobs(request):
+    json_dict = []
+    now = get_current_time()
+    target_date = now['datetime'] - datetime.timedelta(12 * 365 / 12)
+    target_year = target_date.year
+    target_month = target_date.month
+    unix_month = unix_time(datetime.datetime(now['year'], now['month'], 1))
+    #create the empty list of dictionaries
+    while (now['month'] != target_month or now['year'] != target_year):
+        tempMon = {'year': now['year'], 'month': now['month'], 'y': 0, 'completed': 0, 'failed': 0, 'cancelled': 0}
+        json_dict.append(tempMon)
+        if(now['month'] - 1 == 0):
+            now['month'] = 12
+            now['year'] -= 1
+        else:
+            now['month'] -= 1
+    for month in json_dict:
+        clusterJob = ClusterJobs.objects.filter(date__year = month['year'], date__month = month['month'])
+        month['y'] = clusterJob[0].total
+        month['completed'] = clusterJob[0].completed
+        month['failed'] = clusterJob[0].failed
+        month['cancelled'] = clusterJob[0].cancelled
+    #make the json
+    cluster_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
+    return HttpResponse(cluster_jobs, content_type='application/json')
+
+def cluster_time(request):
+    json_dict = []
+    now = get_current_time()
+    target_date = now['datetime'] - datetime.timedelta(12 * 365 / 12)
+    target_year = target_date.year
+    target_month = target_date.month
+    unix_month = unix_time(datetime.datetime(now['year'], now['month'], 1))
+    #create the empty list of dictionaries
+    while (now['month'] != target_month or now['year'] != target_year):
+        tempMon = {'year': now['year'], 'month': now['month'], 'y': 0.0, 'requested': 0.0, 'ratio': 0.0}
+        json_dict.append(tempMon)
+        if(now['month'] - 1 == 0):
+            now['month'] = 12
+            now['year'] -= 1
+        else:
+            now['month'] -= 1
+    for month in json_dict:
+        clusterTime = ClusterTime.objects.filter(date__year = month['year'], date__month = month['month'])
+        month['y'] = clusterTime[0].time_used / 3600.0
+        month['requested'] = clusterTime[0].time_requested / 60.0
+        if(month['requested'] != 0):
+            month['ratio'] = month['y'] / month['requested'] * 100
+    cluster_time = json.dumps(json_dict, indent = 4, separators = (',', ': '))
+    return HttpResponse(cluster_time, content_type='application/json')
+
+#returns the lifetime jobs on the cluster
 def cluster_lifetime_jobs():
     state_total = UohJobTable.objects.filter(time_start__gte = 1420070400).values('state').annotate(jobcount = Count('state')).order_by('state')
     lifetime = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -313,6 +450,7 @@ def cluster_lifetime_jobs():
         lifetime[state['state']] = state['jobcount']
     return lifetime
 
+#returns the lifetime cputime on the cluster
 def cluster_lifetime_time():
     allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
     hours_used = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
@@ -320,19 +458,11 @@ def cluster_lifetime_time():
     ratio = (hours_used / hours_requested) * 100
     return {'used': hours_used, 'requested': hours_requested, 'ratio': ratio}
 
-def cluster_jobs(request):
-    allJobs = UohJobTable.objects.filter(time_start__gte = 1420070400).extra( select = dict(runtime = 'time_end', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc').order_by('time_start')
-   
-#    json_jobs = serializers.serialize("json", ClusterJobs.objects.all())
-#    json_jobs = get_json_jobs(allJobs, 12)
-#    return HttpResponse(lifetime)
-#    return HttpResponse(state_total, content_type='application/json')
-
-def cluster_time(request):
-    allJobs = UohJobTable.objects.filter(time_start__gte = 1420070400).extra( select = dict(runtime = 'time_end - time_start', cputime = 'cpus_alloc')).only('time_start', 'time_end', 'timelimit', 'state', 'id_job', 'job_name', 'mem_req', 'cpus_alloc').order_by('time_start')
-    #allJobs = change_times(allJobs)
-    #json_time = get_json_time(allJobs, 12)
-    return HttpResponse(s)
-
 def cluster(request):
+    #check for the existence of this month's entry
+    now = get_current_time()
+    clusterJob = ClusterJobs.objects.filter(date__year=now['year'], date__month=now['month'])
+    if not clusterJob.exists():
+        new_month()
+    #get ALL DA JOBS YAH
     return render(request, 'cluster.html')

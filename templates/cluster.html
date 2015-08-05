@@ -7,8 +7,8 @@
 <script>
   var numMonths = 11; // should be set to  in template
   // core variables for bar chart
-  var width = 475;
-  var height = 350;
+  var width = 675;
+  var height = 450;
   var padding = width / 17; //space from the edge of CSV, prevent y-axis ticks getting cut off
   var barWidth = width / 18;
 
@@ -54,20 +54,20 @@
             .scale(yScale)
             .orient("left");
         
-        var tip = d3.tip() // tooltip
-          .attr("class", "d3-tip")
-          .offset([-10, 0]);
-          // will need to adjust below if more graph types arise
-          if(div_element == "#job_chart") {
+      var tip = d3.tip() // tooltip
+        .attr("class", "d3-tip")
+        .offset([-10, 0]);
+        // will need to adjust below if more graph types arise
+        if(div_element == "#job_chart") {
+        tip.html(function(d) {
+            return "<strong>Total Jobs: </strong>" + d.y + "<br>&#8195; Completed: " + d.completed + "<br>&#8195; Failed: " + d.failed + "<br>&#8195; Cancelled: " + d.cancelled;
+          });
+      }
+        else {
           tip.html(function(d) {
-              return "<strong>Total Jobs: </strong>" + d.y + "<br>&#8195; Completed: " + d.completed + "<br>&#8195; Failed: " + d.failed + "<br>&#8195; Cancelled: " + d.cancelled;
-            });
+            return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0 + "<br><strong>Total Core Hours Requested: </strong>" + Math.round(d.requested * 10) / 10.0 + "<br><strong>% of Requested Time Actually Used: </strong>" + Math.round(d.ratio * 10) / 10.0 + "%";
+          });
         }
-          else {
-            tip.html(function(d) {
-              return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0;
-            });
-          }
 
       canvas.selectAll("rect")
           .data(data)
@@ -112,15 +112,34 @@
 <div class="row">
   <div class="large-12 columns">
     <h1>Cluster Statistics</h1>
-    <hr/>
   </div>
 </div>
-<p id="loadCircle"><i class="fa fa-gear fa-spin fa-4x" style="display = block;"></i></p>
-<p id="job_chart"></p>
-
-{% block initscripts %}
+<div style="border-top: thin solid; border-bottom:thin solid;">
+  <ul class="tabs" data-tab>
+    <li class="tab-title active"><a href="#graphs">Cluster History Graphs</a></li>
+    <li class="tab-title"><a href="#stats">Cluster Statistics</a></li>
+  </ul>
+</div>
+  <div class="tabs-content">
+    <div class="content active" id="graphs">
+      <ul class="tabs vertical" data-tab>
+        <li style="border-right:thin solid" class="tab-title active"><a href="#job">Total Jobs</a></li>
+        <li style="border-right:thin solid" class="tab-title"><a href="#time">Total Core Hours</a></li>
+      </ul>
+      <div class="tabs-content">
+        <div class="content active" id="job">
+          <p id="job_chart"></p>
+        </div>
+        <div class="content" id="time">
+          <p id="time_chart"></p>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="stats">
+    </div>
+  </div>
 <script>
 drawGraph("/HPC_Portal/clusterjobs/", "#job_chart");
+drawGraph("/HPC_Portal/clustertime/", "#time_chart");
 </script>
-{% endblock %}
 {% endblock %}
