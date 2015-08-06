@@ -5,26 +5,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
-  var numMonths = 11; // should be set to  in template
   // core variables for bar chart
   var width = 675;
   var height = 450;
   var padding = width / 17; //space from the edge of CSV, prevent y-axis ticks getting cut off
-  var barWidth = width / 18;
 
   // calling functions to get the earliest month
   var current = new Date(), // current date 
     currentMonth = current.getMonth(),
     currentYear = current.getFullYear();
-
-  var dMonths = new Date(currentYear, currentMonth, 1); // delta months
-    dMonths = new Date(dMonths.setMonth(current.getMonth() - numMonths));
   
   current.setMonth(currentMonth + 1);
   current.setDate(0); // getting last day of the month, ensures that graph doesn't get cut off
 
   // function to draw bar graphs (currently the job graph and cpu time graph)
-  function drawGraph(jsonsrc, div_element) {
+  function drawGraph(jsonsrc, div_element, numMonths) {
+    var barWidth = width / (1.7 * numMonths);
+    var dMonths = new Date(currentYear, currentMonth, 1); // delta months
+      dMonths = new Date(dMonths.setMonth(current.getMonth() - numMonths));
     d3.json(jsonsrc, function(data) {
       var canvas = d3.select(div_element)
         .append("svg")
@@ -87,7 +85,7 @@
               .on('mouseover', tip.show)
                   .on('mouseout', tip.hide)
                 .transition()
-                  .delay(function(d, i) { return (numMonths + 1 - i) * 75; })
+                  .delay(function(d, i) { return (numMonths + 1 - i); })
                   .duration(250)
                   .attr("y", function (d) { return yScale(d.y); })
                   .attr("height", function (d) { return height - padding - yScale(d.y); });
@@ -123,15 +121,31 @@
   <div class="tabs-content">
     <div class="content active" id="graphs">
       <ul class="tabs vertical" data-tab>
-        <li style="border-right:thin solid" class="tab-title active"><a href="#job">Total Jobs</a></li>
-        <li style="border-right:thin solid" class="tab-title"><a href="#time">Total Core Hours</a></li>
+        <li style="border-right: thin solid" class="tab-title active"><a href="#job">Total Jobs</a></li>
+        <li style="border-right: thin solid" class="tab-title"><a href="#time">Total Core Hours</a></li>
       </ul>
       <div class="tabs-content">
         <div class="content active" id="job">
-          <p id="job_chart"></p>
+            <p style="height: 450px;" align="center" id="job_chart"></p>
         </div>
         <div class="content" id="time">
-          <p id="time_chart"></p>
+          <p style="height: 450px;" align="center" id="time_chart"></p>
+          <div id="end"></div>
+        </div>
+      </div>
+      <strong>Number of months to display:</strong>
+      <div class="row">
+        <div class="small-9 columns">
+          <div class="range-slider" id="new_months" data-slider data-options="display_selector: #months; initial:12; start:6; end:24;">
+            <span class="range-slider-handle" role="slider" tabindex="0"></span>
+            <span class="range-slider-active-segment"></span>
+          </div>
+        </div>
+        <div class="small-1 columns">
+          <input type="number" id="months" value="12" /> 
+        </div>
+        <div class="small-2 columns">
+          <a href="javascript:void(0)" onclick="redrawGraph()" class="button postfix">Refresh</a>
         </div>
       </div>
     </div>
@@ -139,7 +153,19 @@
     </div>
   </div>
 <script>
-drawGraph("/HPC_Portal/clusterjobs/", "#job_chart");
-drawGraph("/HPC_Portal/clustertime/", "#time_chart");
+drawGraph("/HPC_Portal/clusterjobs/", "#job_chart", 11);
+drawGraph("/HPC_Portal/clustertime/", "#time_chart", 11);
+function redrawGraph(){
+  var new_months = $('#new_months').attr('data-slider');
+  d3.select('#job_chart')
+    .select("svg")
+    .remove();
+  d3.select('#time_chart')
+    .select("svg")
+    .remove();
+  drawGraph("/HPC_Portal/clustertime/", "#time_chart", new_months);
+  drawGraph("/HPC_Portal/clusterjobs/", "#job_chart", new_months);
+}
+
 </script>
 {% endblock %}
