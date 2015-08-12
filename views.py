@@ -244,8 +244,6 @@ def get_json_time(uid, numMonths):
 def print_jobs(request, uid):
     if not request.user.is_staff:
         uid = pwd.getpwnam(request.user.username)[2]
-    allJobs = get_jobs(uid)
-    allJobs = change_times(allJobs)
     json_jobs = get_json_jobs(uid, 12)
     return HttpResponse(json_jobs, content_type='application/json')
 
@@ -255,8 +253,6 @@ def print_jobs(request, uid):
 def print_time(request, uid):
     if not request.user.is_staff:
         uid = pwd.getpwnam(request.user.username)[2]
-    allJobs = get_jobs(uid)
-    allJobs = change_times(allJobs)
     json_time = get_json_time(uid, 12)
     return HttpResponse(json_time, content_type='application/json')
 
@@ -391,10 +387,10 @@ def update_month():
     clusterTime[0].time_requested = sum(allJobs.values_list('requested', flat = True))
     clusterTime[0].save()
 
-def cluster_jobs(request):
+def cluster_jobs(request, numMonths):
     json_dict = []
     now = get_current_time()
-    target_date = now['datetime'] - datetime.timedelta(12 * 365 / 12)
+    target_date = now['datetime'] - datetime.timedelta(int(numMonths) * 365 / 12)
     target_year = target_date.year
     target_month = target_date.month
     unix_month = unix_time(datetime.datetime(now['year'], now['month'], 1))
@@ -409,18 +405,19 @@ def cluster_jobs(request):
             now['month'] -= 1
     for month in json_dict:
         clusterJob = ClusterJobs.objects.filter(date__year = month['year'], date__month = month['month'])
-        month['y'] = clusterJob[0].total
-        month['completed'] = clusterJob[0].completed
-        month['failed'] = clusterJob[0].failed
-        month['cancelled'] = clusterJob[0].cancelled
+        if clusterJob.exists():
+            month['y'] = clusterJob[0].total
+            month['completed'] = clusterJob[0].completed
+            month['failed'] = clusterJob[0].failed
+            month['cancelled'] = clusterJob[0].cancelled
     #make the json
     cluster_jobs = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return HttpResponse(cluster_jobs, content_type='application/json')
 
-def cluster_time(request):
+def cluster_time(request, numMonths):
     json_dict = []
     now = get_current_time()
-    target_date = now['datetime'] - datetime.timedelta(12 * 365 / 12)
+    target_date = now['datetime'] - datetime.timedelta(int(numMonths) * 365 / 12)
     target_year = target_date.year
     target_month = target_date.month
     unix_month = unix_time(datetime.datetime(now['year'], now['month'], 1))
@@ -435,8 +432,9 @@ def cluster_time(request):
             now['month'] -= 1
     for month in json_dict:
         clusterTime = ClusterTime.objects.filter(date__year = month['year'], date__month = month['month'])
-        month['y'] = clusterTime[0].time_used / 3600.0
-        month['requested'] = clusterTime[0].time_requested / 60.0
+        if clusterTime.exists():
+            month['y'] = clusterTime[0].time_used / 3600.0
+            month['requested'] = clusterTime[0].time_requested / 60.0
         if(month['requested'] != 0):
             month['ratio'] = month['y'] / month['requested'] * 100
     cluster_time = json.dumps(json_dict, indent = 4, separators = (',', ': '))
