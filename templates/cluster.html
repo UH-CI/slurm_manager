@@ -64,7 +64,7 @@
       }
         else {
           tip.html(function(d) {
-            return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0 + "<br><strong>Total Core Hours Requested: </strong>" + Math.round(d.requested * 10) / 10.0 + "<br><strong>% of Requested Time Actually Used: </strong>" + Math.round(d.ratio * 10) / 10.0 + "%";
+            return "<strong>Total Core Hours Used: </strong>" + Math.round(d.y * 10) / 10.0 + "<br><strong>Total Core Hours Requested: </strong>" + Math.round(d.requested * 10) / 10.0 + "<br><strong>% of Requested Time Actually Used: </strong>" + Math.round(d.ratio * 100) / 100.0 + "%";
           });
         }
 
@@ -154,8 +154,8 @@
     </div>
   </div>
 <script>
-drawGraph("/HPC_Portal/clusterjobs/", "#job_chart", 11);
-drawGraph("/HPC_Portal/clustertime/", "#time_chart", 11);
+drawGraph("/HPC_Portal/clusterjobs/12/", "#job_chart", 11);
+drawGraph("/HPC_Portal/clustertime/12/", "#time_chart", 11);
 function redrawGraph(){
   var new_months = $('#new_months').attr('data-slider');
   d3.select('#job_chart')
@@ -164,8 +164,10 @@ function redrawGraph(){
   d3.select('#time_chart')
     .select("svg")
     .remove();
-  drawGraph("/HPC_Portal/clustertime/", "#time_chart", new_months);
-  drawGraph("/HPC_Portal/clusterjobs/", "#job_chart", new_months);
+  time_url = "/HPC_Portal/clustertime/" + new_months + "/"
+  job_url = "/HPC_Portal/clusterjobs/" + new_months + "/"
+  drawGraph(time_url, "#time_chart", new_months - 1);
+  drawGraph(job_url, "#job_chart", new_months - 1);
 }
 
 </script>
