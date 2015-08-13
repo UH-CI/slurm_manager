@@ -154,8 +154,8 @@
     </div>
   </div>
 <script>
-drawGraph("/HPC_Portal/clusterjobs/12/", "#job_chart", 11);
-drawGraph("/HPC_Portal/clustertime/12/", "#time_chart", 11);
+drawGraph("{% url 'cluster_jobs' 12  %}", "#job_chart", 11);
+drawGraph("{% url 'cluster_time' 12  %}", "#time_chart", 11);
 function redrawGraph(){
   var new_months = $('#new_months').attr('data-slider');
   d3.select('#job_chart')
@@ -164,8 +164,10 @@ function redrawGraph(){
   d3.select('#time_chart')
     .select("svg")
     .remove();
-  time_url = "/HPC_Portal/clustertime/" + new_months + "/"
-  job_url = "/HPC_Portal/clusterjobs/" + new_months + "/"
+  var tmpurl_time="{% url 'cluster_time' 0  %}";
+  var tmpurl_job="{% url 'cluster_jobs' 0  %}";
+  time_url = tmpurl_time.replace("/0/", "/" + new_months + "/");
+  job_url = tmpurl_job.replace("/0/", "/" + new_months + "/");
   drawGraph(time_url, "#time_chart", new_months - 1);
   drawGraph(job_url, "#job_chart", new_months - 1);
 }
