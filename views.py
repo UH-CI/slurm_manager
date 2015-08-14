@@ -442,21 +442,76 @@ def cluster_time(request, numMonths):
     cluster_time = json.dumps(json_dict, indent = 4, separators = (',', ': '))
     return HttpResponse(cluster_time, content_type='application/json')
 
-#returns the lifetime jobs on the cluster
-def cluster_lifetime_jobs():
+#returns the week, month, and lifetime jobs on the cluster
+def cluster_job_stats():
+    now = get_current_time()
+    #week
+    day_of_week = now['datetime'].isoweekday()
+    beginning_of_week = now['datetime'] - datetime.timedelta(day_of_week, 0)
+    beginning_of_week_unix_time = unix_time(beginning_of_week)
+    state_total = UohJobTable.objects.filter(time_start__gte = beginning_of_week_unix_time).values('state').annotate(jobcount = Count('state')).order_by('state')
+    week = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for state in state_total:
+        week[state['state']] = state['jobcount']
+        week[9] += state['jobcount']
+    #month
+    beginning_of_month_unix_time = unix_time(datetime.datetime(now['year'], now['month'], 1))
+    state_total = UohJobTable.objects.filter(time_start__gte = beginning_of_month_unix_time).values('state').annotate(jobcount = Count('state')).order_by('state')
+    month = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for state in state_total:
+        month[state['state']] = state['jobcount']
+        month[9] += state['jobcount']
+    #lifetime
     state_total = UohJobTable.objects.filter(time_start__gte = 1420070400).values('state').annotate(jobcount = Count('state')).order_by('state')
-    lifetime = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    lifetime = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for state in state_total:
         lifetime[state['state']] = state['jobcount']
-    return lifetime
+        lifetime[9] += state['jobcount']
+    return {'week': week, 'month': month, 'lifetime': lifetime}
 
-#returns the lifetime cputime on the cluster
-def cluster_lifetime_time():
+#returns the week, month, and lifetime cputime on the cluster
+def cluster_time_stats():
+    now = get_current_time()
+    #week
+    day_of_week = now['datetime'].isoweekday()
+    beginning_of_week = now['datetime'] - datetime.timedelta(day_of_week, 0)
+    beginning_of_week_unix_time = unix_time(beginning_of_week)
+    week = [0, 0, 0.0] #used, requested, ratio
+    allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = beginning_of_week_unix_time)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+    week = [0, 0, 0]
+    week[0] = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
+
+    week[1] = sum(allJobs.values_list('requested', flat = True)) / 60.0
+    if week[1] > 0:
+        week[2] = (week[0] / week[1]) * 100
+        week[2] = str('%.2f' %week[2])
+    week[0] = str('%.2f' %week[0])
+    week[1] = str('%.2f' %week[1])
+
+    #month
+    beginning_of_month_unix_time = unix_time(datetime.datetime(now['year'], now['month'], 1))
+    month = [0, 0, 0.0]
+    allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = beginning_of_month_unix_time)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
+    month = [0, 0, 0]
+    month[0] = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
+    month[1] = sum(allJobs.values_list('requested', flat = True)) / 60.0
+    if month[1] > 0:
+        month[2] = (month[0] / month[1]) * 100
+        month[2] = str('%.2f' %month[2])
+    month[0] = str('%.2f' %month[0])
+    month[1] = str('%.2f' %month[1])
+
+    #lifetime
     allJobs = UohJobTable.objects.filter(Q(time_start__lte = F('time_end')) & Q(time_start__gte = 1420070400)).extra(dict(cpuhours = '(time_end - time_start) * cpus_alloc', requested = 'timelimit * cpus_alloc'))
-    hours_used = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
-    hours_requested = sum(allJobs.values_list('requested', flat = True)) / 3600.0
-    ratio = (hours_used / hours_requested) * 100
-    return {'used': hours_used, 'requested': hours_requested, 'ratio': ratio}
+    lifetime = [0, 0, 0]
+    lifetime[0] = sum(allJobs.values_list('cpuhours', flat = True)) / 3600.0
+    lifetime[1] = sum(allJobs.values_list('requested', flat = True)) / 60.0
+    if lifetime[1] > 0:
+        lifetime[2] = (lifetime[0] / lifetime[1]) * 100
+        lifetime[2] = str('%.2f' %lifetime[2])
+    lifetime[0] = str('%.2f' %lifetime[0])
+    lifetime[1] = str('%.2f' %lifetime[1])
+    return {'week': week, 'month': month, 'lifetime': lifetime}
 
 def cluster(request):
     #check for the existence of this month's entry
@@ -465,4 +520,6 @@ def cluster(request):
     if not clusterJob.exists():
         new_month()
     update_month()
-    return render(request, 'cluster.html')
+    job_stats = cluster_job_stats()
+    time_stats = cluster_time_stats()
+    return render(request, 'cluster.html', {'t_week': time_stats['week'], 't_month' : time_stats['month'], 't_lifetime' : time_stats['lifetime'], 'j_week': job_stats['week'], 'j_month' : job_stats['month'], 'j_lifetime' : job_stats['lifetime']})

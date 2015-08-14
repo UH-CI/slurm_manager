@@ -151,8 +151,63 @@
       </div>
     </div>
     <div class="content" id="stats">
+      <h4><strong>Jobs Performed</strong></h4>  
+        <div class="row">
+          <div class="small-6 columns">
+            <strong>This Month</strong><br>
+            <ul class="square">  
+              <li><kbd>{{ j_month.1 }}</kbd><strong> jobs currently running</strong></li>
+
+              <li><kbd>{{ j_month.0 }}</kbd> jobs pending</li>
+
+              <li><kbd>{{ j_week.9 }}</kbd> jobs started this past week</li>
+
+              <li><kbd>{{ j_month.9 }}</kbd> jobs started this past month</li>
+            </ul>
+          </div>
+          <div class="small-6 columns">
+            <strong>Lifetime</strong>
+            <ul class="square">
+              <li><kbd>{{ j_lifetime.9 }}</kbd> jobs started</li>
+
+              <li><kbd>{{ j_lifetime.3 }}</kbd> jobs completed</li>
+
+              <li><kbd>{{ j_lifetime.5 }}</kbd> jobs failed</li>
+
+              <li><kbd>{{ j_lifetime.4 }}</kbd> jobs cancelled</li>
+            </ul>
+          </div>
+        </div>
+      <hr>
+      <h4><strong>Core Time Used</strong><span data-tooltip aria-haspopup="true" class="has-tip" title="Core time is the total amount of CPUs used in a job multiplied by the runtime."><i class="fa fa-info-circle fa-3x" style="vertical-align: sub; font-size: 11px;"></i></span></h4>
+      <div class="row">
+        <div class="small-6 columns">
+          <strong>This Month</strong><br>
+            <ul class="square">
+              <li><kbd>{{ t_week.0 }} hours</kbd> used this past week</li>
+              <li><kbd>{{ t_week.1 }} hours</kbd> requested this past week</li>
+              <ul class="square">
+                <li><kbd>{{ t_week.2 }}%</kbd> of requested core time was actually used this week</li>
+              </ul>
+              <li><kbd>{{ t_month.0 }} hours</kbd> used this past month</li>
+              <li><kbd>{{ t_month.1 }} hours</kbd> requested this past month</li>
+              <ul class="square">
+                <li><kbd>{{ t_month.2 }}%</kbd> of requested core time was actually used this month</li>
+              </ul>
+            </ul>
+        </div>
+        <div class="small-6 columns">
+          <strong>Lifetime</strong><br>
+          <ul class="square">
+            <li><kbd>{{ t_lifetime.0 }} hours</kbd> requested</li>
+            <li><kbd>{{ t_lifetime.1 }} hours</kbd> used</li>
+            <ul class="square">
+              <li><kbd>{{ t_lifetime.2 }}%</kbd> of requested core time was actually used</li>
+            </ul>
+          </ul>
+        </div>
     </div>
-  </div>
+</div>
 <script>
 drawGraph("{% url 'cluster_jobs' 12  %}", "#job_chart", 11);
 drawGraph("{% url 'cluster_time' 12  %}", "#time_chart", 11);
