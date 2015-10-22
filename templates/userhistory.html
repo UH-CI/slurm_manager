@@ -56,7 +56,7 @@
      <tbody>
       {% for job in allJobs %}
       <tr>
-      	<td>{{ job.job_db_inx }}</td>
+      	<td>{{ job.id_job }}</td>
       	<td>{{ job.job_name }}</td>
       	<td>{{ job.state }}</td>
       	<td>{{ job.time_start|date:"Y/m/d, H:i:s" }}</td>
